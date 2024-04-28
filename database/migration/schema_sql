@@ -1,0 +1,48 @@
+CREATE TYPE "race" AS ENUM (
+'PERSIA',
+'HIMALAYA',
+'ANGGORA',
+'etc'
+);
+
+CREATE TYPE "sex" AS ENUM (
+'male',
+'female'
+);
+
+CREATE TABLE "user" (
+"id" integer PRIMARY KEY,
+"email" string,
+"name" string,
+"password" string
+);
+
+CREATE TABLE "cat" (
+"id" integer PRIMARY KEY,
+"ownerId" integer,
+"name" string,
+"race" race,
+"sex" sex,
+"ageInMonth" integer,
+"description" string,
+"imageUrls" array(string),
+"isAlreadyMatched" boolean,
+"createdAt" date
+);
+
+CREATE TABLE "match" (
+"id" integer PRIMARY KEY,
+"issuedId" integer,
+"matchCatId" integer,
+"userCatId" integer,
+"message" string,
+"createdAt" date
+);
+
+ALTER TABLE "match" ADD FOREIGN KEY ("issuedId") REFERENCES "user" ("id");
+
+ALTER TABLE "cat" ADD FOREIGN KEY ("ownerId") REFERENCES "user" ("id");
+
+ALTER TABLE "match" ADD FOREIGN KEY ("matchCatId") REFERENCES "cat" ("id");
+
+ALTER TABLE "match" ADD FOREIGN KEY ("userCatId") REFERENCES "cat" ("id");
