@@ -9,6 +9,10 @@ type service interface {
 	ValidateUser(ctx context.Context, user model.User) (err error)
 	Register(ctx context.Context, data model.User) (user model.UserWithAccess, err error)
 	Login(ctx context.Context, data model.LoginRequest) (user model.UserWithAccess, err error)
+
+	MatchCat(ctx context.Context, match model.MatchRequest, userId int64)(err error)
+	ValidateIdCat(ctx context.Context, match model.MatchRequest)(err error)
+	ValidateGenderCat(ctx context.Context, match model.MatchRequest) (err error)
 }
 
 type Handler struct {

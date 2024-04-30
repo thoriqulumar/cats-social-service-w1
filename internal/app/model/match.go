@@ -1,0 +1,20 @@
+package model
+
+type MatchRequest struct {
+	MatchCatId int64 `json:"matchCatId"`
+	UserCatId  int64 `json:"userCatId"`
+	Message    string `json:"message"`
+}
+
+type Match struct {
+	ID         int64  `json:"id"`
+	IssuedID   string `json:"issuedId"`
+	MatchCatId string `json:"matchCatId"`
+	UserCatId  string `json:"userCatId"`
+	Message    string `json:"message"`
+	CreatedAt  string `json:"createdAt"`
+}
+
+type MatchResponse struct {
+	Message string         `json:"message"`
+}
