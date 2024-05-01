@@ -2,16 +2,15 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/thoriqulumar/cats-social-service-w1/internal/app/config"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/delivery"
-	"github.com/thoriqulumar/cats-social-service-w1/internal/middleware"
 )
 
-func initRouter(h *delivery.Handler) {
+func initRouter(h *delivery.Handler, authMiddleware gin.HandlerFunc) {
 	r := gin.Default()
 
 	// registerRouters(app)
 	registerRouters(r, h)
+	catRouters(r, h, authMiddleware)
 
 	// TODO: graceful shutdown
 	err := r.Run(":8080")
@@ -29,6 +28,8 @@ func registerRouters(r *gin.Engine, h *delivery.Handler) {
 	r.POST("/v1/user/login", h.Login)
 }
 
-func catRouters(r *gin.Engine, h *delivery.Handler) {
-	r.Use(middleware.AuthMiddleware(&config.Config{}))
+func catRouters(r *gin.Engine, h *delivery.Handler, authMiddleware gin.HandlerFunc) {
+	r.Use(authMiddleware)
+
+	r.POST("/v1/cat")
 }
