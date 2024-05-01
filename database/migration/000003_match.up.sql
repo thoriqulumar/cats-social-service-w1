@@ -4,6 +4,7 @@ CREATE TABLE "match" (
      "matchCatId" integer,
      "userCatId" integer,
      "message" varchar,
+     "isApprovedOrRejected" boolean,
      "createdAt" date
 );
 

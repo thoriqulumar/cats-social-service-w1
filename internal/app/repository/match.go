@@ -2,20 +2,23 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 )
 
 var (
-    createMatchQuery = `INSERT INTO "match" ("issuedId","matchCatId", "userCatId", "message", "createdAt") 
-                        VALUES($1, $2, $3, $4, NOW()) RETURNING *;` // Select all inserted columns with *
+    createMatchQuery = `INSERT INTO "match" ("issuedId","matchCatId", "userCatId", "message", "isApprovedOrRejected", "createdAt") 
+                        VALUES($1, $2, $3, $4, false, NOW()) RETURNING *;` // Select all inserted columns with *
 )
 
 func (r *Repo) MatchCat(ctx context.Context, data model.MatchRequest, issuedId int64) (model.Match, error) {
     var match model.Match
     err := r.db.QueryRowContext(ctx, createMatchQuery, issuedId, data.MatchCatId, data.UserCatId, data.Message).Scan(&match.ID,
-        &match.IssuedID, &match.MatchCatId, &match.UserCatId, &match.Message, &match.CreatedAt, // Scan into struct fields
+        &match.IssuedID, &match.MatchCatId, &match.UserCatId, &match.Message, &match.IsApprovedOrRejected, &match.CreatedAt, // Scan into struct fields
     )
+
+	fmt.Println(err)
     if err != nil {
         return model.Match{}, err
     }

@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -26,7 +25,6 @@ func (h *Handler) MatchCat(c *gin.Context) {
 
 	// validation create match cat
 	err = h.service.ValidationMatchCat(ctx, match, int64(mockIssuedId))
-	fmt.Println(err)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"err": err.Error(),
@@ -36,7 +34,6 @@ func (h *Handler) MatchCat(c *gin.Context) {
 
 	// validation request match cat
 	err = h.service.ValidationRequestCat(ctx, match, int64(mockIssuedId))
-	fmt.Println(err)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": err.Error(),

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 	"go.uber.org/zap"
@@ -31,7 +30,6 @@ func (s *Service) ValidationMatchCat(ctx context.Context, match model.MatchReque
 		return errors.New("matchCatId is not found")
 	}
 
-	fmt.Println(match.UserCatId, issuedId)
 	// check if userCatId is owned by userId
 	_, err = s.repo.GetCatOwnerByID(ctx, match.UserCatId, issuedId)
 	if err != nil {
@@ -77,16 +75,35 @@ func (s *Service) ValidationRequestCat(ctx context.Context, match model.MatchReq
 }
 
 func (s *Service) DeleteMatch(ctx context.Context, id, issuedId int64) (err error){
-	// check issuedId and id match
-	_, err = s.repo.GetMatchByIdAndIssuedId(ctx, id, issuedId)
-	if err != nil && err == sql.ErrNoRows {
-		return errors.New("failed to delete, match data is not owned by this issuedId")
-	}
-
 	err = s.repo.DeleteMatchById(ctx, id)
 	if err != nil {
 		s.logger.Error("failed to delete match", zap.Error(err))
 		return
+	}
+
+	return nil
+}
+
+
+func (s *Service) ValidateDeleteMatchId(ctx context.Context, id, issuedId int64) (err error){
+	// check issuedId and id match
+	_, err = s.repo.GetMatchByIdAndIssuedId(ctx, id, issuedId)
+	if err != nil && err == sql.ErrNoRows {
+		return errors.New("matchId is not found")
+	}
+
+	return nil
+}
+
+func (s *Service) ValidateMatchIsApproved(ctx context.Context, id, issuedId int64) (err error){
+	// check issuedId and id match
+	match, _ := s.repo.GetMatchByIdAndIssuedId(ctx, id, issuedId)
+	if err != nil && err == sql.ErrNoRows {
+		return
+	}
+
+	if match.IsApprovedOrRejected{
+		return errors.New("matchId is already approved / reject")
 	}
 
 	return nil
