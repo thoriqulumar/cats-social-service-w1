@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -30,4 +31,31 @@ func Generate(secretKey string, data interface{}) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func ValidateToken(tokenString, secretKey string) (jwt.MapClaims, error) {
+	fmt.Println("tokenString", tokenString)
+	fmt.Println("secretKey", secretKey)
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		fmt.Println("token", token)
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		// Return the secret key for validation
+		return []byte(secretKey), nil
+	})
+	if err != nil {
+		fmt.Println("err parse token", err)
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, fmt.Errorf("token is invalid")
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims, nil
+	}
+
+	return nil, fmt.Errorf("unable to parse claims")
 }
