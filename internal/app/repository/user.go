@@ -6,20 +6,18 @@ import (
 )
 
 var (
-	createUserQuery = `INSERT INTO "user" (email,"name", "password") VALUES($1, $2, $3);`
+	createUserQuery = `INSERT INTO "user" (email,"name", "password") VALUES($1, $2, $3) RETURNING *;`
 )
 
-func (r *Repo) CreateUser(ctx context.Context, data model.User) (err error) {
+func (r *Repo) CreateUser(ctx context.Context, data model.User) (user model.User, err error) {
 	// db query goes here
-	_, err = r.db.ExecContext(ctx, createUserQuery, data.Email, data.Name, data.Password)
-	if err != nil {
-		return err
-	}
-	return nil
+	err = r.db.QueryRowxContext(ctx, createUserQuery, data.Email, data.Name, data.Password).StructScan(&user)
+
+	return user, err
 }
 
 var (
-	getUserByEmailQuery = `SELECT email,name,password FROM "user" WHERE "email"=$1 LIMIT 1;`
+	getUserByEmailQuery = `SELECT id,email,name,password FROM "user" WHERE "email"=$1 LIMIT 1;`
 )
 
 func (r *Repo) GetUserByEmail(ctx context.Context, email string) (data model.User, err error) {

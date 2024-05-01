@@ -11,7 +11,7 @@ import (
 // repository interface, the used function is declared here
 type repository interface {
 	GetUserByEmail(ctx context.Context, email string) (user model.User, err error)
-	CreateUser(ctx context.Context, data model.User) (err error)
+	CreateUser(ctx context.Context, data model.User) (user model.User, err error)
 
 	GetCatByID(ctx context.Context, id int64) (data model.Cat, err error)
 	GetCatOwnerByID(ctx context.Context, catId, ownerId int64) (data model.Cat, err error)
