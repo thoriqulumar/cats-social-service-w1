@@ -29,5 +29,5 @@ func registerRouters(r *gin.Engine, h *delivery.Handler) {
 
 	r.POST("/v1/cat/match", h.MatchCat)
 	r.GET("/v1/cat/match")
-	r.POST("/v1/cat/match/approve")
+	r.POST("/v1/cat/match/approve") 
 }
