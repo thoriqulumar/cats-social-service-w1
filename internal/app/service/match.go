@@ -9,43 +9,35 @@ import (
 	"go.uber.org/zap"
 )
 
-func (s *Service) MatchCat(ctx context.Context, match model.MatchRequest, userId int64) (err error) {
-	err = s.repo.MatchCat(ctx, match, userId)
+func (s *Service) MatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error) {
+	err = s.repo.MatchCat(ctx, match, issuedId)
 	if err != nil {
-		s.logger.Error("failed to create user", zap.Error(err))
+		s.logger.Error("failed to create match", zap.Error(err))
 		return
 	}
 
 	return nil
 }
 
-func (s *Service) ValidateIdCat(ctx context.Context, match model.MatchRequest) (err error) {
-	// TODO validate userCatId and matchCatId are found or not
-	_, err = s.repo.GetCatByID(ctx, match.UserCatId)
-	if err != nil && err != sql.ErrNoRows {
-		return errors.New("userCatId is not found")
-	}
-
-	_, err = s.repo.GetCatByID(ctx, match.MatchCatId)
-	if err != nil && err != sql.ErrNoRows {
-		return errors.New("matchCatId is not found")
-	}
-
-	return nil
-}
-
-func (s *Service) ValidateGenderCat(ctx context.Context, match model.MatchRequest) (err error) {
+func (s *Service) ValidationMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error) {
 	// validate gender userCatId and matchCatId are not same
 	userCatData, err := s.repo.GetCatByID(ctx, match.UserCatId)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && err == sql.ErrNoRows {
 		return errors.New("userCatId is not found")
 	}
 
 	matchCatData, err := s.repo.GetCatByID(ctx, match.MatchCatId)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && err == sql.ErrNoRows {
 		return errors.New("matchCatId is not found")
 	}
 
+	// check if userCatId is owned by userId
+	_, err = s.repo.GetCatOwnerByID(ctx, match.UserCatId, issuedId)
+	if err != nil && err == sql.ErrNoRows {
+		return errors.New("issuedId not owner of userCatId")
+	}
+
+	// check if cat sex is not same
 	if matchCatData.Sex == userCatData.Sex {
 		return errors.New("Cat cannot same sex")
 	}

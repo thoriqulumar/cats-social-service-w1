@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 )
@@ -13,6 +14,7 @@ var (
 func (r *Repo) MatchCat(ctx context.Context, data model.MatchRequest, issuedId int64) (err error) {
 	// db query goes here
 	_, err = r.db.ExecContext(ctx, createMatchQuery, issuedId, data.MatchCatId, data.UserCatId, data.Message)
+	fmt.Println(err)
 	if err != nil {
 		return err
 	}

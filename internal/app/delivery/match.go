@@ -18,19 +18,12 @@ func (h *Handler) MatchCat(c *gin.Context) {
 		})
 		return
 	}
-	// check if userCatId is owned by userId
 
-	// check is matchCatId and userCatId is found  
-	err = h.service.ValidateIdCat(ctx, match)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"err": err.Error(),
-		})
-		return
-	}
+	// TODO get issuedId from access token
+	mockIssuedId := 1
 
-	// check is matchCatId and userCatId is found 
-	err = h.service.ValidateGenderCat(ctx, match)
+	// validation create match cat
+	err = h.service.ValidationMatchCat(ctx, match, int64(mockIssuedId))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": err.Error(),
@@ -39,8 +32,13 @@ func (h *Handler) MatchCat(c *gin.Context) {
 	}
 
 	// create match
+	err = h.service.MatchCat(ctx, match, int64(mockIssuedId))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
 
 	c.JSON(http.StatusOK, model.MatchResponse{
-		Message: "User logged successfully",
+		Message: "Cat matched successfully. Please wait for the response of receiver",
 	})
 }

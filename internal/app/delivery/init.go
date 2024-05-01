@@ -11,8 +11,7 @@ type service interface {
 	Login(ctx context.Context, data model.LoginRequest) (user model.UserWithAccess, err error)
 
 	MatchCat(ctx context.Context, match model.MatchRequest, userId int64)(err error)
-	ValidateIdCat(ctx context.Context, match model.MatchRequest)(err error)
-	ValidateGenderCat(ctx context.Context, match model.MatchRequest) (err error)
+	ValidationMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error)
 }
 
 type Handler struct {
