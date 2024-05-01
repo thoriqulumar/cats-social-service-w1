@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -39,7 +38,8 @@ func AuthMiddleware(secretKey string) gin.HandlerFunc {
 		}
 
 		data := claims["data"]
-		fmt.Println("Data from token:", data)
+		// Add user data to the request context
+		c.Set("userData", data)
 
 		// If authorization is successful, proceed to the next handler
 		c.Next()
