@@ -31,6 +31,5 @@ func registerRouters(r *gin.Engine, h *delivery.Handler) {
 func catRouters(r *gin.Engine, h *delivery.Handler, authMiddleware gin.HandlerFunc) {
 	// example use case of authMiddleware
 	r.Use(authMiddleware)
-
 	r.POST("/v1/cat")
 }
