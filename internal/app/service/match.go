@@ -9,14 +9,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func (s *Service) MatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error) {
-	err = s.repo.MatchCat(ctx, match, issuedId)
+func (s *Service) MatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (data model.Match, err error) {
+	data, err = s.repo.MatchCat(ctx, match, issuedId)
 	if err != nil {
-		s.logger.Error("failed to create match", zap.Error(err))
 		return
 	}
 
-	return nil
+	return data, nil
 }
 
 func (s *Service) ValidationMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error) {

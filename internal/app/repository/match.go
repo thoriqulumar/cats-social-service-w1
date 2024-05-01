@@ -2,24 +2,26 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 )
 
 var (
-	createMatchQuery = `INSERT INTO "match" ("issuedId","matchCatId", "userCatId", "message", "createdAt") VALUES($1, $2, $3, $4, NOW());`
+    createMatchQuery = `INSERT INTO "match" ("issuedId","matchCatId", "userCatId", "message", "createdAt") 
+                        VALUES($1, $2, $3, $4, NOW()) RETURNING *;` // Select all inserted columns with *
 )
 
-func (r *Repo) MatchCat(ctx context.Context, data model.MatchRequest, issuedId int64) (err error) {
-	// db query goes here
-	_, err = r.db.ExecContext(ctx, createMatchQuery, issuedId, data.MatchCatId, data.UserCatId, data.Message)
-	fmt.Println(err)
-	if err != nil {
-		return err
-	}
-	return nil
+func (r *Repo) MatchCat(ctx context.Context, data model.MatchRequest, issuedId int64) (model.Match, error) {
+    var match model.Match
+    err := r.db.QueryRowContext(ctx, createMatchQuery, issuedId, data.MatchCatId, data.UserCatId, data.Message).Scan(&match.ID,
+        &match.IssuedID, &match.MatchCatId, &match.UserCatId, &match.Message, &match.CreatedAt, // Scan into struct fields
+    )
+    if err != nil {
+        return model.Match{}, err
+    }
+    return match, nil
 }
+
 
 var (
 	getMatchByIDQuery = `SELECT * FROM "match" WHERE "id"=$1 LIMIT 1;`

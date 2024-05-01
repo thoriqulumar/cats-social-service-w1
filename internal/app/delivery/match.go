@@ -33,7 +33,7 @@ func (h *Handler) MatchCat(c *gin.Context) {
 	}
 
 	// create match
-	err = h.service.MatchCat(ctx, match, int64(mockIssuedId))
+	data, err := h.service.MatchCat(ctx, match, int64(mockIssuedId))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
@@ -41,6 +41,7 @@ func (h *Handler) MatchCat(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.MatchResponse{
 		Message: "Cat matched successfully. Please wait for the response of receiver",
+		Data: data,
 	})
 }
 
