@@ -5,11 +5,12 @@ import (
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/delivery"
 )
 
-func initRouter(h *delivery.Handler) {
+func initRouter(h *delivery.Handler, authMiddleware gin.HandlerFunc) {
 	r := gin.Default()
 
 	// registerRouters(app)
 	registerRouters(r, h)
+	catRouters(r, h, authMiddleware)
 
 	// TODO: graceful shutdown
 	err := r.Run(":8080")
@@ -32,4 +33,10 @@ func registerRouters(r *gin.Engine, h *delivery.Handler) {
 	r.POST("/v1/cat/match/approve")
 	r.POST("/v1/cat/match/reject")
 	r.DELETE("/v1/cat/match/:id", h.DeleteMatch) 
+}
+
+func catRouters(r *gin.Engine, h *delivery.Handler, authMiddleware gin.HandlerFunc) {
+	// example use case of authMiddleware
+	r.Use(authMiddleware)
+	r.POST("/v1/cat")
 }
