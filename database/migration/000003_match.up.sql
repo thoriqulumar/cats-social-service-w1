@@ -1,9 +1,10 @@
 CREATE TABLE "match" (
-     "id" integer PRIMARY KEY,
+     "id" serial PRIMARY KEY,
      "issuedId" integer,
      "matchCatId" integer,
      "userCatId" integer,
      "message" varchar,
+     "isApprovedOrRejected" boolean,
      "createdAt" date
 );
 

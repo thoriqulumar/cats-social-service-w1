@@ -34,10 +34,7 @@ func Generate(secretKey string, data interface{}) (string, error) {
 }
 
 func ValidateToken(tokenString, secretKey string) (jwt.MapClaims, error) {
-	fmt.Println("tokenString", tokenString)
-	fmt.Println("secretKey", secretKey)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		fmt.Println("token", token)
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
