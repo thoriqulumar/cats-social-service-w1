@@ -34,13 +34,25 @@ func (r *Repo) GetMatchByID(ctx context.Context, id int) (data model.Match, err 
 }
 
 var (
-	getCatOwnerByID = `SELECT * FROM "cat" WHERE "id"=$1 AND "ownerId"=$3 LIMIT 1;`
+	getMatchByIdAndIssuedIdQuery = `SELECT * FROM "match" WHERE "id"=$1 AND "issuedId"=$2 LIMIT 1;`
 )
 
-func (r *Repo) GetCatOwnerByID(ctx context.Context, catId, ownerId int64) (data model.Cat, err error) {
-	err = r.db.QueryRowxContext(ctx, getCatOwnerByID, catId, ownerId).StructScan(&data)
+func (r *Repo) GetMatchByIdAndIssuedId(ctx context.Context, id, issuedId int64) (data model.Match, err error){
+	err = r.db.QueryRowxContext(ctx, getMatchByIdAndIssuedIdQuery, id, issuedId).StructScan(&data)
 	if err != nil {
 		return
 	}
 	return
+}
+
+var (
+	deleteMatchQuery = `DELETE FROM "match" WHERE id = $1;`
+)
+
+func (r *Repo) DeleteMatchById(ctx context.Context, id int64) (err error){
+	_, err = r.db.ExecContext(ctx, deleteMatchQuery, id)
+    if err != nil {
+        return err
+    }
+    return nil
 }

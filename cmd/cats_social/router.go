@@ -31,5 +31,5 @@ func registerRouters(r *gin.Engine, h *delivery.Handler) {
 	r.GET("/v1/cat/match")
 	r.POST("/v1/cat/match/approve")
 	r.POST("/v1/cat/match/reject")
-	r.DELETE("/v1/cat/match/:id") 
+	r.DELETE("/v1/cat/match/:id", h.DeleteMatch) 
 }

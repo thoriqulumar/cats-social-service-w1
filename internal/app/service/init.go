@@ -18,6 +18,8 @@ type repository interface {
 
 	MatchCat(ctx context.Context, data model.MatchRequest, issuedId int64) (err error)
 	GetMatchByID(ctx context.Context, id int) (data model.Match, err error)
+	GetMatchByIdAndIssuedId(ctx context.Context, id, issuedId int64) (data model.Match, err error)
+	DeleteMatchById(ctx context.Context, id int64) (err error)
 }
 
 type Service struct {

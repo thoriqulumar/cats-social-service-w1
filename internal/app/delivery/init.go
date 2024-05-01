@@ -12,6 +12,7 @@ type service interface {
 
 	MatchCat(ctx context.Context, match model.MatchRequest, userId int64)(err error)
 	ValidationMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error)
+	DeleteMatch(ctx context.Context, id, issuedId int64) (err error)
 }
 
 type Handler struct {

@@ -44,3 +44,19 @@ func (s *Service) ValidationMatchCat(ctx context.Context, match model.MatchReque
 
 	return nil
 }
+
+func (s *Service) DeleteMatch(ctx context.Context, id, issuedId int64) (err error){
+	// check issuedId and id match
+	_, err = s.repo.GetMatchByIdAndIssuedId(ctx, id, issuedId)
+	if err != nil && err == sql.ErrNoRows {
+		return errors.New("failed to delete, match data is not owned by this issuedId")
+	}
+
+	err = s.repo.DeleteMatchById(ctx, id)
+	if err != nil {
+		s.logger.Error("failed to delete match", zap.Error(err))
+		return
+	}
+
+	return nil
+}
