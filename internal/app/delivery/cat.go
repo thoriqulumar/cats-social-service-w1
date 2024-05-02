@@ -1,11 +1,11 @@
 package delivery
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
+	cerror "github.com/thoriqulumar/cats-social-service-w1/internal/pkg/error"
 )
 
 func (h *Handler) GetCat(c *gin.Context) {
@@ -16,9 +16,10 @@ func (h *Handler) GetCat(c *gin.Context) {
 	catRequest := parseCatRequestFromQuery(rawQuery)
 
 	data, err := h.service.GetCat(ctx, catRequest)
-	fmt.Println("err", err)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{})
+		c.JSON(cerror.GetCode(err), gin.H{
+			"err": err.Error(),
+		})
 		return
 	}
 

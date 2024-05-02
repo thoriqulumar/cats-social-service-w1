@@ -2,13 +2,35 @@ package service
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"strings"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 )
 
+func parseAgeInMonthFilter(ageFilter string) (string, string, error) {
+	var operator, value string
+
+	parts := strings.Split(ageFilter, "=")
+	if len(parts) != 2 {
+		return "", "", errors.New("invalid ageInMonth filter format")
+	}
+
+	operator = "="
+	value = parts[1]
+
+	if strings.HasPrefix(parts[1], "<") {
+		operator = "<"
+		value = parts[1][1:]
+	} else if strings.HasPrefix(parts[1], ">") {
+		operator = ">"
+		value = parts[1][1:]
+	}
+
+	return operator, value, nil
+}
+
 func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest) ([]model.Cat, error) {
-	fmt.Println("catReq", catReq)
 	limit := 5
 	offset := 0
 
@@ -32,8 +54,12 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest) ([]mod
 		args = append(args, *catReq.HasMatched)
 	}
 	if catReq.AgeInMonth != nil {
-		query += " AND ageInMonth = ?"
-		args = append(args, *catReq.AgeInMonth)
+		operator, value, err := parseAgeInMonthFilter(*catReq.AgeInMonth)
+		if err != nil {
+			return nil, err
+		}
+		query += " AND age_in_month " + operator + " ?"
+		args = append(args, value)
 	}
 	if catReq.Owned != nil {
 		query += " AND owned = ?"
