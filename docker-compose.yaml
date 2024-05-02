@@ -5,7 +5,7 @@ services:
     image: postgres:latest
     container_name: postgres_container
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_DB: cat_social
       POSTGRES_USER: myuser

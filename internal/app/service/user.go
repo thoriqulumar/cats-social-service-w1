@@ -13,7 +13,7 @@ import (
 	"net/http"
 )
 
-func (s *Service) Register(ctx context.Context, data model.User) (user model.UserWithAccess, err error) {
+func (s *Service) Register(ctx context.Context, data model.User) (userWithAccess model.UserWithAccess, err error) {
 	// bcrypt password
 	// Hash a password using bcrypt with the specified number of rounds
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), s.cfg.BcryptSalt)
@@ -23,19 +23,19 @@ func (s *Service) Register(ctx context.Context, data model.User) (user model.Use
 
 	data.Password = string(hashedPassword)
 
-	err = s.repo.CreateUser(ctx, data)
+	user, err := s.repo.CreateUser(ctx, data)
 	if err != nil {
 		s.logger.Error("failed to create user", zap.Error(err))
 		return
 	}
 
 	// create JWT accessToken
-	accessToken, err := s.generateJWT(ctx, data)
+	accessToken, err := s.generateJWT(ctx, user)
 	if err != nil {
 		s.logger.Error("failed generate JWT", zap.Error(err))
 		return
 	}
-	user = model.UserWithAccess{
+	userWithAccess = model.UserWithAccess{
 		Email:       data.Email,
 		Name:        data.Name,
 		AccessToken: accessToken,

@@ -27,6 +27,7 @@ CREATE TABLE "cat" (
     "description" varchar,
     "imageUrls" varchar[],
     "isAlreadyMatched" boolean,
+    "isDeleted" boolean,
     "createdAt" date
 );
 
