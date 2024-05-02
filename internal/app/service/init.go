@@ -13,7 +13,7 @@ type repository interface {
 	GetUserByEmail(ctx context.Context, email string) (user model.User, err error)
 	CreateUser(ctx context.Context, data model.User) (user model.User, err error)
 
-	GetCat(ctx context.Context, filter string) (model.Cat, error)
+	GetCat(ctx context.Context, limit int, offset int) (model.Cat, error)
 	GetCatByID(ctx context.Context, id int64) (data model.Cat, err error)
 	GetCatOwnerByID(ctx context.Context, catId, ownerId int64) (data model.Cat, err error)
 

@@ -11,7 +11,7 @@ var (
 	suffixGetCat = `;`
 )
 
-func (r *Repo) GetCat(ctx context.Context, filter string) (model.Cat, error) {
+func (r *Repo) GetCat(ctx context.Context, limit int, offset int) (model.Cat, error) {
 	concatenatedQuery := ""
 
 	if filter != "" {
