@@ -34,3 +34,17 @@ type MatchResponse struct {
 	Message string `json:"message"`
 	Data    Match  `json:"data"`
 }
+
+type MatchListResponse struct {
+	Message string      `json:"message"`
+	Data    []MatchData `json:"data"`
+}
+
+type MatchData struct {
+	ID             int          `json:"id"`
+	IssuedBy       UserResponse `json:"issuedBy"`
+	MatchCatDetail Cat          `json:"matchCatDetail"`
+	UserCatDetail  Cat          `json:"userCatDetail"`
+	Message        string       `json:"message"`
+	CreatedAt      string       `json:"createdAt"`
+}

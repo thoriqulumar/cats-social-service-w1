@@ -26,31 +26,6 @@ func (s *Service) MatchCat(ctx context.Context, match model.MatchRequest, issued
 	return data, nil
 }
 
-// func (s *Service) ValidationMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error) {
-// 	// validate gender userCatId and matchCatId are not same
-// 	_, err = s.repo.GetCatByID(ctx, match.UserCatId)
-// 	if err != nil && err == sql.ErrNoRows {
-// 		return errors.New("userCatId is not found")
-// 	}
-
-// 	_, err = s.repo.GetCatByID(ctx, match.MatchCatId)
-// 	if err != nil && err == sql.ErrNoRows {
-// 		return errors.New("matchCatId is not found")
-// 	}
-
-// 	// check if userCatId is owned by userId
-// 	_, err = s.repo.GetCatOwnerByID(ctx, match.UserCatId, issuedId)
-// 	if err != nil {
-// 		if err != sql.ErrNoRows {
-// 			return errors.New("issuedId not owner of userCatId")
-// 		}
-// 		// Handle case where no cat was found (data is zero-value Cat)
-// 		return errors.New("issuedId not owner of userCatId")
-// 	}
-
-// 	return nil
-// }
-
 func (s *Service) ValidateMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error) {
 	// validate gender userCatId and matchCatId are not same
 	userCatData, err := s.repo.GetCatByID(ctx, match.UserCatId)
@@ -168,4 +143,44 @@ func (s *Service) RejectMatch(ctx context.Context, id int64) (matchID string, er
 		return matchID, cerror.New(http.StatusInternalServerError, "failed to update match status")
 	}
 	return
+}
+
+func (s *Service) GetMatchData(ctx context.Context, id int64) (listMatch []model.MatchData, err error){
+	var listData []model.MatchData
+
+	rows, err := s.repo.GetAllMatchData(ctx, id)
+
+	if err != nil {
+		return nil,  cerror.New(http.StatusInternalServerError, "failed getting match data")
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var matchData model.MatchData
+		var match model.Match
+		var matchCat, userCat model.Cat
+		var issuedBy model.UserResponse
+
+		err = rows.StructScan(&match)
+		if err != nil {
+			return
+		}
+		
+		issuedBy, _ = s.repo.GetUserById(ctx, match.IssuedID)
+		matchCat, _ = s.repo.GetCatByID(ctx, match.MatchCatId)
+		userCat, _ = s.repo.GetCatByID(ctx, match.UserCatId)
+
+		matchData = model.MatchData{
+			ID: int(match.ID),
+			IssuedBy: issuedBy,
+			MatchCatDetail: matchCat,
+			UserCatDetail: userCat,
+			Message: match.Message,
+			CreatedAt: match.CreatedAt,
+		}
+		
+		listData = append(listData, matchData)
+	}
+
+	return listData, nil
 }
