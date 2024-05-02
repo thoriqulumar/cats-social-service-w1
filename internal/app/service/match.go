@@ -26,31 +26,6 @@ func (s *Service) MatchCat(ctx context.Context, match model.MatchRequest, issued
 	return data, nil
 }
 
-// func (s *Service) ValidationMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error) {
-// 	// validate gender userCatId and matchCatId are not same
-// 	_, err = s.repo.GetCatByID(ctx, match.UserCatId)
-// 	if err != nil && err == sql.ErrNoRows {
-// 		return errors.New("userCatId is not found")
-// 	}
-
-// 	_, err = s.repo.GetCatByID(ctx, match.MatchCatId)
-// 	if err != nil && err == sql.ErrNoRows {
-// 		return errors.New("matchCatId is not found")
-// 	}
-
-// 	// check if userCatId is owned by userId
-// 	_, err = s.repo.GetCatOwnerByID(ctx, match.UserCatId, issuedId)
-// 	if err != nil {
-// 		if err != sql.ErrNoRows {
-// 			return errors.New("issuedId not owner of userCatId")
-// 		}
-// 		// Handle case where no cat was found (data is zero-value Cat)
-// 		return errors.New("issuedId not owner of userCatId")
-// 	}
-
-// 	return nil
-// }
-
 func (s *Service) ValidateMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error) {
 	// validate gender userCatId and matchCatId are not same
 	userCatData, err := s.repo.GetCatByID(ctx, match.UserCatId)
