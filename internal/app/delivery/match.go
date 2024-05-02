@@ -21,9 +21,7 @@ func (h *Handler) MatchCat(c *gin.Context) {
 		return
 	}
 
-	userData, _ := c.Get("userData")
-	// get issuedId from access token
-	issuedId := int64(userData.(map[string]any)["id"].(float64))
+	issuedId := getRequestedUserIDFromRequest(c)
 
 	// validation create match cat
 	// err = h.service.ValidationMatchCat(ctx, match, int64(issuedId))
@@ -69,9 +67,7 @@ func (h *Handler) DeleteMatch(c *gin.Context) {
 	paramId := c.Param("id")
 	id, _ := strconv.Atoi(paramId)
 
-	userData, _ := c.Get("userData")
-	// get issuedId from access token
-	issuedId := int64(userData.(map[string]any)["id"].(float64))
+	issuedId := getRequestedUserIDFromRequest(c)
 
 	// create match
 	err := h.service.DeleteMatch(ctx, int64(id), int64(issuedId))
@@ -82,5 +78,57 @@ func (h *Handler) DeleteMatch(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.MatchResponse{
 		Message: "Match deleted successfully",
+	})
+}
+
+func (h *Handler) ApproveMatch(c *gin.Context) {
+	ctx := c.Request.Context()
+	receiverId := getRequestedUserIDFromRequest(c)
+
+	req := model.UpdateStatusRequest{}
+	err := json.NewDecoder(c.Request.Body).Decode(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
+
+	matchID, err := h.service.ApproveMatch(ctx, req.MatchCatId, receiverId)
+	if err != nil {
+		c.JSON(cerror.GetCode(err), gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Match approved successfully",
+		"matchId": matchID,
+	})
+}
+
+func (h *Handler) RejectMatch(c *gin.Context) {
+	ctx := c.Request.Context()
+	receiverId := getRequestedUserIDFromRequest(c)
+
+	req := model.UpdateStatusRequest{}
+	err := json.NewDecoder(c.Request.Body).Decode(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
+
+	matchID, err := h.service.ApproveMatch(ctx, req.MatchCatId, receiverId)
+	if err != nil {
+		c.JSON(cerror.GetCode(err), gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Match approved successfully",
+		"matchId": matchID,
 	})
 }

@@ -12,7 +12,13 @@ import (
 )
 
 func (s *Service) MatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (data model.Match, err error) {
-	data, err = s.repo.MatchCat(ctx, match, issuedId)
+	// get receiverID
+	matchCat, err := s.repo.GetCatByID(ctx, match.MatchCatId)
+	if err != nil {
+		return
+	}
+
+	data, err = s.repo.MatchCat(ctx, match, issuedId, matchCat.OwnerId)
 	if err != nil {
 		return
 	}
@@ -112,9 +118,54 @@ func (s *Service) ValidateMatchIsApproved(ctx context.Context, id, issuedId int6
 		return
 	}
 
-	if match.IsApprovedOrRejected {
+	if match.Status == model.MatchStatusApproved {
 		return errors.New("matchId is already approved / reject")
 	}
 
 	return nil
+}
+
+func (s *Service) ApproveMatch(ctx context.Context, id int64, receiverID int64) (matchID string, err error) {
+	// get match data
+	data, err := s.repo.GetMatchByID(ctx, id)
+	if err != nil {
+		return "", err
+	}
+
+	if data.ReceiverID != receiverID {
+		return "", cerror.New(http.StatusBadRequest, "userCatId is not belong to the user")
+	}
+
+	// TODO: implement transaction
+	// approve the match
+	err = s.repo.UpdateMatchStatus(ctx, id, model.MatchStatusApproved)
+	if err != nil {
+		return "", cerror.New(http.StatusInternalServerError, "failed to update match status")
+	}
+
+	// delete the others
+	listMatch, err := s.repo.GetMatchByBothOwner(ctx, data.IssuedID, data.ReceiverID)
+	if err != nil {
+		return "", cerror.New(http.StatusInternalServerError, "failed getting match by both owner")
+	}
+	// delete
+	for _, match := range listMatch {
+		// if same with the approved id, skip
+		if match.ID == id {
+			continue
+		}
+		err = s.repo.DeleteMatchById(ctx, match.ID)
+		if err != nil {
+			s.logger.Error("failed to delete match", zap.Error(err))
+		}
+	}
+	return
+}
+
+func (s *Service) RejectMatch(ctx context.Context, id int64) (matchID string, err error) {
+	err = s.repo.UpdateMatchStatus(ctx, id, model.MatchStatusRejected)
+	if err != nil {
+		return matchID, cerror.New(http.StatusInternalServerError, "failed to update match status")
+	}
+	return
 }
