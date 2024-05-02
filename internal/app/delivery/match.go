@@ -115,3 +115,24 @@ func (h *Handler) RejectMatch(c *gin.Context) {
 		"matchId": matchID,
 	})
 }
+
+
+func (h *Handler) GetMatch(c *gin.Context) {
+	ctx := c.Request.Context()
+	userId := getRequestedUserIDFromRequest(c)
+
+	data, err := h.service.GetMatchData(ctx, userId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	if data == nil {
+		data = []model.MatchData{} 
+	}
+
+	c.JSON(http.StatusOK, model.MatchListResponse{
+		Message: "success",
+		Data: data,
+	})
+}

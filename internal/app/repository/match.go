@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 )
 
@@ -22,7 +22,6 @@ func (r *Repo) MatchCat(ctx context.Context, data model.MatchRequest, issuedId, 
 		&match.IssuedID, &match.ReceiverID, &match.MatchCatId, &match.UserCatId, &match.Message, &match.Status, &match.CreatedAt, // Scan into struct fields
 	)
 
-	fmt.Println(err)
 	if err != nil {
 		return model.Match{}, err
 	}
@@ -95,4 +94,17 @@ func (r *Repo) GetMatchByBothOwner(ctx context.Context, issuedId int64, receiver
 	}
 
 	return
+}
+
+var (
+	getMatchDataByIdQuery = `SELECT ` + defaultColumnForMatchTable + ` FROM match WHERE "issuedId"=$1 OR "receiverId"=$2;`
+)
+
+func (r *Repo) GetAllMatchData(ctx context.Context, id int64) (list *sqlx.Rows, err error) {
+	listData, err := r.db.QueryxContext(ctx, getMatchDataByIdQuery, id, id)
+	if err != nil {
+		return
+	}
+
+	return listData, nil
 }

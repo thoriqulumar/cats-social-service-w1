@@ -144,3 +144,43 @@ func (s *Service) RejectMatch(ctx context.Context, id int64) (matchID string, er
 	}
 	return
 }
+
+func (s *Service) GetMatchData(ctx context.Context, id int64) (listMatch []model.MatchData, err error){
+	var listData []model.MatchData
+
+	rows, err := s.repo.GetAllMatchData(ctx, id)
+
+	if err != nil {
+		return nil,  cerror.New(http.StatusInternalServerError, "failed getting match data")
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var matchData model.MatchData
+		var match model.Match
+		var matchCat, userCat model.Cat
+		var issuedBy model.UserResponse
+
+		err = rows.StructScan(&match)
+		if err != nil {
+			return
+		}
+		
+		issuedBy, _ = s.repo.GetUserById(ctx, match.IssuedID)
+		matchCat, _ = s.repo.GetCatByID(ctx, match.MatchCatId)
+		userCat, _ = s.repo.GetCatByID(ctx, match.UserCatId)
+
+		matchData = model.MatchData{
+			ID: int(match.ID),
+			IssuedBy: issuedBy,
+			MatchCatDetail: matchCat,
+			UserCatDetail: userCat,
+			Message: match.Message,
+			CreatedAt: match.CreatedAt,
+		}
+		
+		listData = append(listData, matchData)
+	}
+
+	return listData, nil
+}
