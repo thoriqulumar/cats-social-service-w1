@@ -16,10 +16,12 @@ type repository interface {
 	GetCatByID(ctx context.Context, id int64) (data model.Cat, err error)
 	GetCatOwnerByID(ctx context.Context, catId, ownerId int64) (data model.Cat, err error)
 
-	MatchCat(ctx context.Context, data model.MatchRequest, issuedId int64) (model.Match, error)
-	GetMatchByID(ctx context.Context, id int) (data model.Match, err error)
+	MatchCat(ctx context.Context, data model.MatchRequest, issuedId, receiverID int64) (model.Match, error)
+	GetMatchByID(ctx context.Context, id int64) (data model.Match, err error)
 	GetMatchByIdAndIssuedId(ctx context.Context, id, issuedId int64) (data model.Match, err error)
 	DeleteMatchById(ctx context.Context, id int64) (err error)
+	UpdateMatchStatus(ctx context.Context, id int64, status model.MatchStatus) (err error)
+	GetMatchByBothOwner(ctx context.Context, issuerID, receiverID int64) (listData []model.Match, err error)
 }
 
 type Service struct {
