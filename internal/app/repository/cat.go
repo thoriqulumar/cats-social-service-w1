@@ -7,27 +7,28 @@ import (
 )
 
 var (
-	prefixGetCat = `SELECT * FROM cat`
+	prefixGetCat = `SELECT * FROM cats WHERE 1=1`
 	suffixGetCat = `;`
 )
 
-func (r *Repo) GetCat(ctx context.Context, limit int, offset int) (model.Cat, error) {
-	concatenatedQuery := ""
+func (r *Repo) GetCat(ctx context.Context, query string, args []interface{}) (cats []model.Cat, err error) {
+	concatenatedQuery := prefixGetCat + query + suffixGetCat
 
-	if filter != "" {
-		concatenatedQuery = prefixGetCat + "" + filter + "" + suffixGetCat
-	} else {
-		concatenatedQuery = prefixGetCat + suffixGetCat
-	}
-
-	var cat model.Cat
-	err := r.db.QueryRowxContext(ctx, concatenatedQuery).Scan(&cat.ID, &cat.Name, &cat.Race, &cat.Sex, &cat.AgeInMonth, &cat.ImagesUrl, &cat.Description, &cat.HasMatched, &cat.CreatedAt)
-
+	rows, err := r.db.QueryxContext(ctx, concatenatedQuery, args...)
 	if err != nil {
-		return model.Cat{}, err
+		return []model.Cat{}, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var cat model.Cat
+		err = rows.StructScan(&cat)
+		if err != nil {
+			return []model.Cat{}, err
+		}
+		cats = append(cats, cat)
 	}
 
-	return cat, nil
+	return cats, nil
 }
 
 var (

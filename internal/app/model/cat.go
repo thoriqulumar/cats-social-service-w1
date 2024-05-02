@@ -34,7 +34,7 @@ type GetCatRequest struct {
 
 type GetCatResponse struct {
 	Message string `json:"message"`
-	Data    Match  `json:"data"`
+	Data    []Cat  `json:"data"`
 }
 
 // StringArray represents a string array that can be scanned from the database.

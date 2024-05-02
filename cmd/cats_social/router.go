@@ -11,7 +11,7 @@ func initRouter(h *delivery.Handler, authMiddleware gin.HandlerFunc) {
 	// registerRouters(app)
 	registerRouters(r, h)
 	registerCatRouters(r, h, authMiddleware)
-	// matchRouters(r, h, authMiddleware)
+	matchRouters(r, h, authMiddleware)
 
 	// TODO: graceful shutdown
 	err := r.Run(":8080")
@@ -42,7 +42,7 @@ func matchRouters(r *gin.Engine, h *delivery.Handler, authMiddleware gin.Handler
 
 func registerCatRouters(r *gin.Engine, h *delivery.Handler, authMiddleware gin.HandlerFunc) {
 	// example use case of authMiddleware
-	// r.Use(authMiddleware)
+	r.Use(authMiddleware)
 
 	r.GET("/v1/cat", h.GetCat)
 }

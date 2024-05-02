@@ -11,7 +11,7 @@ type service interface {
 	Register(ctx context.Context, data model.User) (user model.UserWithAccess, err error)
 	Login(ctx context.Context, data model.LoginRequest) (user model.UserWithAccess, err error)
 
-	GetCat(ctx context.Context, req model.GetCatRequest) (model.Cat, error)
+	GetCat(ctx context.Context, req model.GetCatRequest) ([]model.Cat, error)
 
 	MatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (data model.Match, err error)
 	ValidateMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error)
