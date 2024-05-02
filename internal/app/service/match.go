@@ -79,7 +79,7 @@ func (s *Service) ValidateMatchCat(ctx context.Context, match model.MatchRequest
 	}
 
 	// check if cat already matched
-	if matchCatData.IsAlreadyMatched || userCatData.IsAlreadyMatched {
+	if matchCatData.HasMatched || userCatData.HasMatched {
 		return cerror.New(http.StatusBadRequest, "userCat or matchCat already being matched")
 	}
 
