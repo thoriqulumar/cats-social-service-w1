@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	prefixGetCat = `SELECT * FROM cats WHERE 1=1`
+	prefixGetCat = `SELECT * FROM cat WHERE 1=1`
 	suffixGetCat = `;`
 )
 

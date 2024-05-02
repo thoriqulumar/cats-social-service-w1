@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,12 +16,13 @@ func (h *Handler) GetCat(c *gin.Context) {
 	catRequest := parseCatRequestFromQuery(rawQuery)
 
 	data, err := h.service.GetCat(ctx, catRequest)
+	fmt.Println("err", err)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
 
-	c.JSON(http.StatusCreated, model.GetCatResponse{
+	c.JSON(http.StatusOK, model.GetCatResponse{
 		Message: "success",
 		Data:    data,
 	})
