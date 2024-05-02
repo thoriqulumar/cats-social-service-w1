@@ -28,18 +28,16 @@ func registerRouters(r *gin.Engine, h *delivery.Handler) {
 	r.POST("/v1/user/register", h.Register)
 	r.POST("/v1/user/login", h.Login)
 
-
-	
 }
 
-func matchRouters(r *gin.Engine, h *delivery.Handler, authMiddleware gin.HandlerFunc){
+func matchRouters(r *gin.Engine, h *delivery.Handler, authMiddleware gin.HandlerFunc) {
 	r.Use(authMiddleware)
 
 	r.POST("/v1/cat/match", h.MatchCat)
 	r.GET("/v1/cat/match")
-	r.POST("/v1/cat/match/approve")
-	r.POST("/v1/cat/match/reject")
-	r.DELETE("/v1/cat/match/:id", h.DeleteMatch) 
+	r.POST("/v1/cat/match/approve", h.ApproveMatch)
+	r.POST("/v1/cat/match/reject", h.RejectMatch)
+	r.DELETE("/v1/cat/match/:id", h.DeleteMatch)
 }
 
 func catRouters(r *gin.Engine, h *delivery.Handler, authMiddleware gin.HandlerFunc) {

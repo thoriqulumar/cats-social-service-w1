@@ -12,9 +12,10 @@ type service interface {
 	Login(ctx context.Context, data model.LoginRequest) (user model.UserWithAccess, err error)
 
 	MatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (data model.Match, err error)
-	ValidationMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error)
 	ValidateMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error)
 	DeleteMatch(ctx context.Context, id, issuedId int64) (err error)
+	ApproveMatch(ctx context.Context, id int64, receiverID int64) (matchID string, err error)
+	RejectMatch(ctx context.Context, id int64) (matchID string, err error)
 }
 
 type Handler struct {
