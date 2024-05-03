@@ -23,6 +23,10 @@ func (h *Handler) GetCat(c *gin.Context) {
 		return
 	}
 
+	if data == nil {
+		data = []model.Cat{}
+	}
+
 	c.JSON(http.StatusOK, model.GetCatResponse{
 		Message: "success",
 		Data:    data,
