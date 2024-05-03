@@ -30,7 +30,7 @@ func parseAgeInMonthFilter(ageFilter string) (string, string, error) {
 	return operator, value, nil
 }
 
-func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest) ([]model.Cat, error) {
+func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId int64) ([]model.Cat, error) {
 	defaultLimit := 5
 	defaultOffset := 0
 
@@ -62,8 +62,12 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest) ([]mod
 		args = append(args, value)
 	}
 	if catReq.Owned != nil {
-		query += " AND owned = ?"
-		args = append(args, *catReq.Owned)
+		if *catReq.Owned {
+			query += " AND ownerId = ?" // Get cats with ownerId equal to request's ownerId
+		} else {
+			query += " AND ownerId != ?" // Get cats with ownerId not equal to request's ownerId
+		}
+		args = append(args, userId)
 	}
 	if catReq.Search != nil {
 		query += " AND name LIKE ?"

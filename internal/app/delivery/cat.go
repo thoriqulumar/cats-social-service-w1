@@ -15,7 +15,9 @@ func (h *Handler) GetCat(c *gin.Context) {
 
 	catRequest := parseCatRequestFromQuery(rawQuery)
 
-	data, err := h.service.GetCat(ctx, catRequest)
+	userId := getRequestedUserIDFromRequest(c)
+
+	data, err := h.service.GetCat(ctx, catRequest, userId)
 	if err != nil {
 		c.JSON(cerror.GetCode(err), gin.H{
 			"err": err.Error(),
