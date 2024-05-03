@@ -14,7 +14,7 @@ type Cat struct {
 	Sex         string      `json:"sex" db:"sex"`
 	AgeInMonth  int         `json:"ageInMonth" db:"ageInMonth"`
 	Description string      `json:"description" db:"description"`
-	ImagesUrl   StringArray `json:"imagesUrl" db:"imageUrls"`
+	ImagesUrls  StringArray `json:"imageUrls" db:"imageUrls"`
 	HasMatched  bool        `json:"hasMatched" db:"hasMatched"`
 	IsDeleted   bool        `json:"isDeleted" db:"isDeleted"`
 	CreatedAt   string      `json:"createdAt" db:"createdAt"`

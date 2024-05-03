@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
+	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/converter"
 	cerror "github.com/thoriqulumar/cats-social-service-w1/internal/pkg/error"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/validator"
 )
@@ -98,16 +99,13 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId
 func (s *Service) PostCat(ctx context.Context, catReq model.PostCatRequest, userId int64) (model.Cat, error) {
 	var args []interface{}
 
-	// Get the type of the struct
-	reqType := reflect.TypeOf(catReq)
-	// Get the value of the struct
-	reqValue := reflect.ValueOf(catReq)
-
 	args = append(args, userId)
-	for i := 0; i < reqType.NumField(); i++ {
-		fieldValue := reqValue.Field(i).Interface()
-		args = append(args, fieldValue)
-	}
+	args = append(args, catReq.Name)
+	args = append(args, catReq.Race)
+	args = append(args, catReq.Sex)
+	args = append(args, catReq.AgeInMonth)
+	args = append(args, catReq.Description)
+	args = append(args, converter.ConvertStrArrToPgArr(catReq.ImageUrls))
 
 	data, err := s.repo.PostCat(ctx, args)
 	if err != nil {

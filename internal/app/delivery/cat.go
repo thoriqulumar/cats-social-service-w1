@@ -51,13 +51,13 @@ func (h *Handler) PostCat(c *gin.Context) {
 
 	userId := getRequestedUserIDFromRequest(c)
 
-	err = h.service.ValidatePostCat(ctx, catReq, userId)
-	if err != nil {
-		c.JSON(cerror.GetCode(err), gin.H{
-			"err": err.Error(),
-		})
-		return
-	}
+	// err = h.service.ValidatePostCat(ctx, catReq, userId)
+	// if err != nil {
+	// 	c.JSON(cerror.GetCode(err), gin.H{
+	// 		"err": err.Error(),
+	// 	})
+	// 	return
+	// }
 
 	data, err := h.service.PostCat(ctx, catReq, userId)
 	if err != nil {
@@ -70,7 +70,7 @@ func (h *Handler) PostCat(c *gin.Context) {
 	id := strconv.Itoa(int(data.ID))
 
 	c.JSON(http.StatusCreated, model.PostCatResponse{
-		Message: "successfully update cat",
+		Message: "success",
 		Data: model.Data{
 			ID:        id,
 			CreatedAt: data.CreatedAt,

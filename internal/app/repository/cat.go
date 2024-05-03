@@ -57,7 +57,7 @@ func (r *Repo) GetCatOwnerByID(ctx context.Context, catId, ownerId int64) (data 
 }
 
 var (
-	postCat = `INSERT INTO cat (ownerId, name, race, sex, ageInMonth, description, imagesUrl, hasMatched, isDeleted, createdAt) VALUES ($1, $2, $3, $4, $5, $6, $7, false, false, NOW()) RETURNING *;`
+	postCat = `INSERT INTO cat ("ownerId", name, race, sex, "ageInMonth", description, "imageUrls", "hasMatched", "isDeleted", "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7, false, false, NOW()) RETURNING *;`
 )
 
 func (r *Repo) PostCat(ctx context.Context, args []interface{}) (cat model.Cat, err error) {
