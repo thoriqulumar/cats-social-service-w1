@@ -37,6 +37,47 @@ func (h *Handler) GetCat(c *gin.Context) {
 	})
 }
 
+func (h *Handler) PostCat(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	catReq := model.PostCatRequest{}
+	err := json.NewDecoder(c.Request.Body).Decode(&catReq)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
+
+	userId := getRequestedUserIDFromRequest(c)
+
+	err = h.service.ValidatePostCat(ctx, catReq, userId)
+	if err != nil {
+		c.JSON(cerror.GetCode(err), gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
+
+	data, err := h.service.PostCat(ctx, catReq, userId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
+
+	id := strconv.Itoa(int(data.ID))
+
+	c.JSON(http.StatusCreated, model.PostCatResponse{
+		Message: "successfully update cat",
+		Data: model.Data{
+			ID:        id,
+			CreatedAt: data.CreatedAt,
+		},
+	})
+}
+
 func (h *Handler) PutCat(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -55,7 +96,7 @@ func (h *Handler) PutCat(c *gin.Context) {
 
 	userId := getRequestedUserIDFromRequest(c)
 
-	err = h.service.ValidatePostCat(ctx, catReq, int64Id, userId)
+	err = h.service.ValidatePutCat(ctx, catReq, int64Id, userId)
 	if err != nil {
 		c.JSON(cerror.GetCode(err), gin.H{
 			"err": err.Error(),
@@ -71,7 +112,7 @@ func (h *Handler) PutCat(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, model.PostCatResponse{
+	c.JSON(http.StatusOK, model.PutCatResponse{
 		Message: "successfully update cat",
 	})
 }

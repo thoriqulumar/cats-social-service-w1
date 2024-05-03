@@ -95,6 +95,28 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId
 	return data, nil
 }
 
+func (s *Service) PostCat(ctx context.Context, catReq model.PostCatRequest, userId int64) (model.Cat, error) {
+	var args []interface{}
+
+	// Get the type of the struct
+	reqType := reflect.TypeOf(catReq)
+	// Get the value of the struct
+	reqValue := reflect.ValueOf(catReq)
+
+	args = append(args, userId)
+	for i := 0; i < reqType.NumField(); i++ {
+		fieldValue := reqValue.Field(i).Interface()
+		args = append(args, fieldValue)
+	}
+
+	data, err := s.repo.PostCat(ctx, args)
+	if err != nil {
+		return model.Cat{}, err
+	}
+
+	return data, nil
+}
+
 func (s *Service) PutCat(ctx context.Context, catReq model.PostCatRequest, catId int64) (sql.Result, error) {
 	var args []interface{}
 
@@ -117,7 +139,35 @@ func (s *Service) PutCat(ctx context.Context, catReq model.PostCatRequest, catId
 	return data, nil
 }
 
-func (s *Service) ValidatePostCat(ctx context.Context, catReq model.PostCatRequest, catId int64, issuerId int64) error {
+func (s *Service) ValidatePostCat(ctx context.Context, catReq model.PostCatRequest, issuerId int64) error {
+	if !validator.IsString(catReq.Name) {
+		return cerror.New(http.StatusBadRequest, "name doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Race) {
+		return cerror.New(http.StatusBadRequest, "race doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Sex) {
+		return cerror.New(http.StatusBadRequest, "sex doesn’t pass validation")
+	}
+
+	if !validator.IsNumber(catReq.AgeInMonth) {
+		return cerror.New(http.StatusBadRequest, "age doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Description) {
+		return cerror.New(http.StatusBadRequest, "description doesn’t pass validation")
+	}
+
+	if !validator.IsValidImageUrls(catReq.ImageUrls) {
+		return cerror.New(http.StatusBadRequest, "imageUrls doesn’t pass validation")
+	}
+
+	return nil
+}
+
+func (s *Service) ValidatePutCat(ctx context.Context, catReq model.PostCatRequest, catId int64, issuerId int64) error {
 	catData, err := s.repo.GetCatByID(ctx, catId)
 
 	if err != nil && errors.Is(err, sql.ErrNoRows) {

@@ -46,7 +46,17 @@ type PostCatRequest struct {
 	ImageUrls   StringArray `json:"imageUrls"`
 }
 
+type Data struct {
+	ID        string `json:"id"`
+	CreatedAt string `json:"createdAt"`
+}
+
 type PostCatResponse struct {
+	Message string `json:"message"`
+	Data    Data   `json:"data"`
+}
+
+type PutCatResponse struct {
 	Message string `json:"message"`
 }
 
