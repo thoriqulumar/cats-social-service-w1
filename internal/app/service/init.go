@@ -9,6 +9,8 @@ import (
 )
 
 // repository interface, the used function is declared here
+//
+//go:generate mockgen -source=init.go -destination=mocks/mock_repository.go -package=mocks
 type repository interface {
 	GetUserByEmail(ctx context.Context, email string) (user model.User, err error)
 	CreateUser(ctx context.Context, data model.User) (user model.User, err error)
@@ -21,7 +23,8 @@ type repository interface {
 	GetMatchByIdAndIssuedId(ctx context.Context, id, issuedId int64) (data model.Match, err error)
 	DeleteMatchById(ctx context.Context, id int64) (err error)
 	UpdateMatchStatus(ctx context.Context, id int64, status model.MatchStatus) (err error)
-	GetMatchByBothOwner(ctx context.Context, issuerID, receiverID int64) (listData []model.Match, err error)
+	GetMatchByUserCatIds(ctx context.Context, userCatIDs []int64) (listData []model.Match, err error)
+	GetMatchByMatchCatIds(ctx context.Context, matchCatIDs []int64) (listData []model.Match, err error)
 }
 
 type Service struct {
