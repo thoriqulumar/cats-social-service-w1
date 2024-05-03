@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"net/url"
 	"reflect"
 	"strings"
 
@@ -126,9 +127,30 @@ func isNumber(n interface{}) bool {
 	return ok
 }
 
-func isStringArray(strArr interface{}) bool {
-	_, ok := strArr.([]string)
-	return ok
+func isValidUrl(strUrl string) bool {
+	if strUrl == "" {
+		return true // Allow empty strings, as this will be handled by other validations
+	}
+
+	_, err := url.ParseRequestURI(strUrl)
+	return err == nil
+}
+
+func isValidImageURLs(arr []string) bool {
+	if len(arr) == 0 {
+		return false
+	}
+
+	for _, item := range arr {
+		if item == "" {
+			return false
+		}
+		if !isValidUrl(item) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (s *Service) ValidatePostCat(ctx context.Context, catReq model.PostCatRequest, catId int64, issuerId int64) error {
@@ -171,7 +193,7 @@ func (s *Service) ValidatePostCat(ctx context.Context, catReq model.PostCatReque
 		return cerror.New(http.StatusBadRequest, "description doesn’t pass validation")
 	}
 
-	if !isStringArray(catReq.ImageUrls) {
+	if !isValidImageURLs(catReq.ImageUrls) {
 		return cerror.New(http.StatusBadRequest, "imageUrls doesn’t pass validation")
 	}
 
