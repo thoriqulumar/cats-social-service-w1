@@ -31,8 +31,8 @@ func parseAgeInMonthFilter(ageFilter string) (string, string, error) {
 }
 
 func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId int64) ([]model.Cat, error) {
-	defaultLimit := 5
-	defaultOffset := 0
+	limit := 5
+	offset := 0
 
 	var query string
 	var args []interface{}
@@ -74,22 +74,14 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId
 		args = append(args, "%"+*catReq.Search+"%")
 	}
 
+	query += " LIMIT $1 OFFSET $2"
 	if catReq.Limit != nil {
-		query += " LIMIT ?"
-		args = append(args, *catReq.Limit)
-	} else {
-		query += " LIMIT ?"
-		args = append(args, defaultLimit)
+		limit = *catReq.Limit
 	}
-
 	if catReq.Offset != nil {
-		query += " OFFSET ?"
-		args = append(args, *catReq.Offset)
-	} else {
-		query += " OFFSET ?"
-		args = append(args, defaultOffset)
+		offset = *catReq.Offset
 	}
-
+	args = append(args, limit, offset)
 	data, err := s.repo.GetCat(ctx, query, args)
 	if err != nil {
 		return []model.Cat{}, err
