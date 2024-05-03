@@ -37,6 +37,19 @@ type GetCatResponse struct {
 	Data    []Cat  `json:"data"`
 }
 
+type PostCatRequest struct {
+	Name        string      `json:"name"`
+	Race        string      `json:"race"`
+	Sex         string      `json:"sex"`
+	AgeInMonth  int         `json:"ageInMonth"`
+	Description string      `json:"description"`
+	ImageUrls   StringArray `json:"imageUrls"`
+}
+
+type PostCatResponse struct {
+	Message string `json:"message"`
+}
+
 // StringArray represents a string array that can be scanned from the database.
 type StringArray []string
 

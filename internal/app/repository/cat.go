@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 )
@@ -53,6 +54,19 @@ func (r *Repo) GetCatOwnerByID(ctx context.Context, catId, ownerId int64) (data 
 		return
 	}
 	return
+}
+
+var (
+	updateCat = `UPDATE cat SET name = $1, race = $2, sex = $3, ageInMonth = $4, description = $5, imageUrls = $6 WHERE id = $7`
+)
+
+func (r *Repo) PutCat(ctx context.Context, args []interface{}) (sql.Result, error) {
+	result, err := r.db.ExecContext(ctx, updateCat, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // var (
