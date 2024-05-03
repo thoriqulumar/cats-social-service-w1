@@ -34,7 +34,7 @@ func matchRouters(r *gin.Engine, h *delivery.Handler, authMiddleware gin.Handler
 	r.Use(authMiddleware)
 
 	r.POST("/v1/cat/match", h.MatchCat)
-	r.GET("/v1/cat/match")
+	r.GET("/v1/cat/match", h.GetMatch)
 	r.POST("/v1/cat/match/approve", h.ApproveMatch)
 	r.POST("/v1/cat/match/reject", h.RejectMatch)
 	r.DELETE("/v1/cat/match/:id", h.DeleteMatch)

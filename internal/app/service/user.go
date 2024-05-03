@@ -4,13 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"net/http"
+
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/email"
 	cerror "github.com/thoriqulumar/cats-social-service-w1/internal/pkg/error"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/jwt"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
 )
 
 func (s *Service) Register(ctx context.Context, data model.User) (userWithAccess model.UserWithAccess, err error) {
@@ -24,6 +26,7 @@ func (s *Service) Register(ctx context.Context, data model.User) (userWithAccess
 	data.Password = string(hashedPassword)
 
 	user, err := s.repo.CreateUser(ctx, data)
+	fmt.Println(user)
 	if err != nil {
 		s.logger.Error("failed to create user", zap.Error(err))
 		return

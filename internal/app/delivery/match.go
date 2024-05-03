@@ -23,23 +23,6 @@ func (h *Handler) MatchCat(c *gin.Context) {
 
 	issuedId := getRequestedUserIDFromRequest(c)
 
-	// validation create match cat
-	// err = h.service.ValidationMatchCat(ctx, match, int64(issuedId))
-	// if err != nil {
-	// 	c.JSON(http.StatusNotFound, gin.H{
-	// 		"err": err.Error(),
-	// 	})
-	// 	return
-	// }
-
-	// // validation request match cat
-	// err = h.service.ValidateMatchCat(ctx, match, int64(issuedId))
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"err": err.Error(),
-	// 	})
-	// 	return
-	// }
 	err = h.service.ValidateMatchCat(ctx, match, int64(issuedId))
 	if err != nil {
 		c.JSON(cerror.GetCode(err), gin.H{
@@ -130,5 +113,26 @@ func (h *Handler) RejectMatch(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Match approved successfully",
 		"matchId": matchID,
+	})
+}
+
+
+func (h *Handler) GetMatch(c *gin.Context) {
+	ctx := c.Request.Context()
+	userId := getRequestedUserIDFromRequest(c)
+
+	data, err := h.service.GetMatchData(ctx, userId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	if data == nil {
+		data = []model.MatchData{} 
+	}
+
+	c.JSON(http.StatusOK, model.MatchListResponse{
+		Message: "success",
+		Data: data,
 	})
 }

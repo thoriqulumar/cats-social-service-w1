@@ -16,7 +16,7 @@ type Cat struct {
 	Description string      `json:"description" db:"description"`
 	ImagesUrl   StringArray `json:"imagesUrl" db:"imageUrls"`
 	HasMatched  bool        `json:"hasMatched" db:"hasMatched"`
-	IsDelseted  bool        `json:"isDeleted" db:"isDeleted"`
+	IsDeleted   bool        `json:"isDeleted" db:"isDeleted"`
 	CreatedAt   string      `json:"createdAt" db:"createdAt"`
 }
 
