@@ -5,12 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"net/url"
 	"reflect"
 	"strings"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 	cerror "github.com/thoriqulumar/cats-social-service-w1/internal/pkg/error"
+	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/validator"
 )
 
 func parseAgeInMonthFilter(ageFilter string) (string, string, error) {
@@ -117,42 +117,6 @@ func (s *Service) PutCat(ctx context.Context, catReq model.PostCatRequest, catId
 	return data, nil
 }
 
-func isString(s interface{}) bool {
-	_, ok := s.(string)
-	return ok
-}
-
-func isNumber(n interface{}) bool {
-	_, ok := n.(int)
-	return ok
-}
-
-func isValidUrl(strUrl string) bool {
-	if strUrl == "" {
-		return true // Allow empty strings, as this will be handled by other validations
-	}
-
-	_, err := url.ParseRequestURI(strUrl)
-	return err == nil
-}
-
-func isValidImageURLs(arr []string) bool {
-	if len(arr) == 0 {
-		return false
-	}
-
-	for _, item := range arr {
-		if item == "" {
-			return false
-		}
-		if !isValidUrl(item) {
-			return false
-		}
-	}
-
-	return true
-}
-
 func (s *Service) ValidatePostCat(ctx context.Context, catReq model.PostCatRequest, catId int64, issuerId int64) error {
 	catData, err := s.repo.GetCatByID(ctx, catId)
 
@@ -173,27 +137,27 @@ func (s *Service) ValidatePostCat(ctx context.Context, catReq model.PostCatReque
 		return cerror.New(http.StatusNotFound, "issuedId is not the owner of this cat")
 	}
 
-	if !isString(catReq.Name) {
+	if !validator.IsString(catReq.Name) {
 		return cerror.New(http.StatusBadRequest, "name doesn’t pass validation")
 	}
 
-	if !isString(catReq.Race) {
+	if !validator.IsString(catReq.Race) {
 		return cerror.New(http.StatusBadRequest, "race doesn’t pass validation")
 	}
 
-	if !isString(catReq.Sex) {
+	if !validator.IsString(catReq.Sex) {
 		return cerror.New(http.StatusBadRequest, "sex doesn’t pass validation")
 	}
 
-	if !isNumber(catReq.AgeInMonth) {
+	if !validator.IsNumber(catReq.AgeInMonth) {
 		return cerror.New(http.StatusBadRequest, "age doesn’t pass validation")
 	}
 
-	if !isString(catReq.Description) {
+	if !validator.IsString(catReq.Description) {
 		return cerror.New(http.StatusBadRequest, "description doesn’t pass validation")
 	}
 
-	if !isValidImageURLs(catReq.ImageUrls) {
+	if !validator.IsValidImageUrls(catReq.ImageUrls) {
 		return cerror.New(http.StatusBadRequest, "imageUrls doesn’t pass validation")
 	}
 
