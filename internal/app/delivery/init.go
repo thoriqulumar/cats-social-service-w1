@@ -16,6 +16,7 @@ type service interface {
 	DeleteMatch(ctx context.Context, id, issuedId int64) (err error)
 	ApproveMatch(ctx context.Context, id int64, receiverID int64) (matchID string, err error)
 	RejectMatch(ctx context.Context, id int64) (matchID string, err error)
+	GetMatchData(ctx context.Context, id int64) (listMatch []model.MatchData, err error)
 }
 
 type Handler struct {
