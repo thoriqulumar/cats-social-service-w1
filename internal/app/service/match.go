@@ -29,19 +29,19 @@ func (s *Service) MatchCat(ctx context.Context, match model.MatchRequest, issued
 func (s *Service) ValidateMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error) {
 	// validate gender userCatId and matchCatId are not same
 	userCatData, err := s.repo.GetCatByID(ctx, match.UserCatId)
-	if err != nil && err == sql.ErrNoRows {
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return cerror.New(http.StatusNotFound, "userCatId is not found")
 	}
 
 	matchCatData, err := s.repo.GetCatByID(ctx, match.MatchCatId)
-	if err != nil && err == sql.ErrNoRows {
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return cerror.New(http.StatusNotFound, "matchCatId is not found")
 	}
 
 	// check if userCatId is owned by userId
 	_, err = s.repo.GetCatOwnerByID(ctx, match.UserCatId, issuedId)
 	if err != nil {
-		if err != sql.ErrNoRows {
+		if !errors.Is(err, sql.ErrNoRows) {
 			return cerror.New(http.StatusNotFound, "issuedId not owner of userCatId")
 		}
 		// Handle case where no cat was found (data is zero-value Cat)
@@ -79,7 +79,7 @@ func (s *Service) DeleteMatch(ctx context.Context, id, issuedId int64) (err erro
 func (s *Service) ValidateDeleteMatchId(ctx context.Context, id, issuedId int64) (err error) {
 	// check issuedId and id match
 	_, err = s.repo.GetMatchByIdAndIssuedId(ctx, id, issuedId)
-	if err != nil && err == sql.ErrNoRows {
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return errors.New("matchId is not found")
 	}
 
@@ -88,8 +88,8 @@ func (s *Service) ValidateDeleteMatchId(ctx context.Context, id, issuedId int64)
 
 func (s *Service) ValidateMatchIsApproved(ctx context.Context, id, issuedId int64) (err error) {
 	// check issuedId and id match
-	match, _ := s.repo.GetMatchByIdAndIssuedId(ctx, id, issuedId)
-	if err != nil && err == sql.ErrNoRows {
+	match, err := s.repo.GetMatchByIdAndIssuedId(ctx, id, issuedId)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return
 	}
 
@@ -107,7 +107,11 @@ func (s *Service) ApproveMatch(ctx context.Context, id int64, receiverID int64) 
 		return "", err
 	}
 
-	if data.ReceiverID != receiverID {
+	matchCat, err := s.repo.GetCatByID(ctx, data.MatchCatId)
+	if err != nil {
+		return "", err
+	}
+	if matchCat.OwnerId != receiverID {
 		return "", cerror.New(http.StatusBadRequest, "userCatId is not belong to the user")
 	}
 
@@ -118,17 +122,30 @@ func (s *Service) ApproveMatch(ctx context.Context, id int64, receiverID int64) 
 		return "", cerror.New(http.StatusInternalServerError, "failed to update match status")
 	}
 
-	// delete the others
-	listMatch, err := s.repo.GetMatchByBothOwner(ctx, data.IssuedID, data.ReceiverID)
-	if err != nil {
+	var listMatch []model.Match
+	// delete the others related UserCatId MatchCatId
+	listA, err := s.repo.GetMatchByUserCatIds(ctx, []int64{data.MatchCatId, data.UserCatId})
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return "", cerror.New(http.StatusInternalServerError, "failed getting match by both owner")
 	}
+	listMatch = append(listMatch, listA...)
+	listB, err := s.repo.GetMatchByMatchCatIds(ctx, []int64{data.MatchCatId, data.UserCatId})
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return "", cerror.New(http.StatusInternalServerError, "failed getting match by both owner")
+	}
+	listMatch = listB
+
 	// delete
 	for _, match := range listMatch {
 		// if same with the approved id, skip
 		if match.ID == id {
 			continue
 		}
+
+		if match.Status != model.MatchStatusWaitingForApproval {
+			continue
+		}
+		// TODO: make this process into bulk by matchIds
 		err = s.repo.DeleteMatchById(ctx, match.ID)
 		if err != nil {
 			s.logger.Error("failed to delete match", zap.Error(err))

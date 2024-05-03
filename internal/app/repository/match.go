@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"github.com/lib/pq"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
@@ -75,11 +76,33 @@ func (r *Repo) UpdateMatchStatus(ctx context.Context, id int64, status model.Mat
 }
 
 var (
-	getMatchByBothOwnerQuery = `SELECT` + defaultColumnForMatchTable + `FROM "match" WHERE issuedId=$1 AND receiverId=$2;`
+	getMatchByOwnerIDsQuery = `SELECT` + defaultColumnForMatchTable + `FROM "match" WHERE userCatId IN($1)`
 )
 
-func (r *Repo) GetMatchByBothOwner(ctx context.Context, issuedId int64, receiverID int64) (listData []model.Match, err error) {
-	rows, err := r.db.QueryxContext(ctx, getMatchByBothOwnerQuery, issuedId, receiverID)
+func (r *Repo) GetMatchByUserCatIds(ctx context.Context, userCatIds []int64) (listData []model.Match, err error) {
+	rows, err := r.db.QueryxContext(ctx, getMatchByOwnerIDsQuery, pq.Array(userCatIds))
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var match model.Match
+		err = rows.StructScan(&match)
+		if err != nil {
+			return
+		}
+		listData = append(listData, match)
+	}
+
+	return
+}
+
+var (
+	getMatchByMatchCatIdsQuery = `SELECT` + defaultColumnForMatchTable + `FROM "match" WHERE matchCatId IN($1)`
+)
+
+func (r *Repo) GetMatchByMatchCatIds(ctx context.Context, matchCatIDs []int64) (listData []model.Match, err error) {
+	rows, err := r.db.QueryxContext(ctx, getMatchByMatchCatIdsQuery, matchCatIDs)
 	if err != nil {
 		return
 	}

@@ -2,14 +2,16 @@ package service
 
 import (
 	"context"
-
 	"github.com/jmoiron/sqlx"
+
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/config"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 	"go.uber.org/zap"
 )
 
 // repository interface, the used function is declared here
+//
+//go:generate mockgen -source=init.go -destination=mocks/mock_repository.go -package=mocks
 type repository interface {
 	GetUserByEmail(ctx context.Context, email string) (user model.User, err error)
 	GetUserById(ctx context.Context, id int64) (data model.UserResponse, err error)
@@ -23,7 +25,8 @@ type repository interface {
 	GetMatchByIdAndIssuedId(ctx context.Context, id, issuedId int64) (data model.Match, err error)
 	DeleteMatchById(ctx context.Context, id int64) (err error)
 	UpdateMatchStatus(ctx context.Context, id int64, status model.MatchStatus) (err error)
-	GetMatchByBothOwner(ctx context.Context, issuerID, receiverID int64) (listData []model.Match, err error)
+	GetMatchByUserCatIds(ctx context.Context, userCatIDs []int64) (listData []model.Match, err error)
+	GetMatchByMatchCatIds(ctx context.Context, matchCatIDs []int64) (listData []model.Match, err error)
 	GetAllMatchData(ctx context.Context, id int64) (list *sqlx.Rows, err error)
 }
 
