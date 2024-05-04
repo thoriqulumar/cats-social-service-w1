@@ -96,38 +96,14 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId
 	return data, nil
 }
 
-func (s *Service) PostCat(ctx context.Context, catReq model.PostCatRequest, userId int64) (model.Cat, error) {
-	var args []interface{}
-
-	args = append(args, userId)
-	args = append(args, catReq.Name)
-	args = append(args, catReq.Race)
-	args = append(args, catReq.Sex)
-	args = append(args, catReq.AgeInMonth)
-	args = append(args, catReq.Description)
-	args = append(args, converter.ConvertStrArrToPgArr(catReq.ImageUrls))
-
-	data, err := s.repo.PostCat(ctx, args)
-	if err != nil {
-		return model.Cat{}, err
-	}
-
-	return data, nil
-}
-
 func (s *Service) PutCat(ctx context.Context, catReq model.PostCatRequest, catId int64) (sql.Result, error) {
 	var args []interface{}
 
-	// Get the type of the struct
-	reqType := reflect.TypeOf(catReq)
-	// Get the value of the struct
-	reqValue := reflect.ValueOf(catReq)
-
-	for i := 0; i < reqType.NumField(); i++ {
-		fieldValue := reqValue.Field(i).Interface()
-		args = append(args, fieldValue)
+	inputVal := reflect.ValueOf(catReq)
+	for i := 0; i < inputVal.NumField()-1; i++ {
+		args = append(args, inputVal.Field(i).Interface())
 	}
-	args = append(args, catId)
+	args = append(args, converter.ConvertStrArrToPgArr(catReq.ImageUrls))
 
 	data, err := s.repo.PutCat(ctx, args)
 	if err != nil {

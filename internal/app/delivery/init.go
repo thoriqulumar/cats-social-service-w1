@@ -13,7 +13,6 @@ type service interface {
 	Login(ctx context.Context, data model.LoginRequest) (user model.UserWithAccess, err error)
 
 	GetCat(ctx context.Context, req model.GetCatRequest, userId int64) ([]model.Cat, error)
-	PostCat(ctx context.Context, catReq model.PostCatRequest, userId int64) (model.Cat, error)
 	PutCat(ctx context.Context, catReq model.PostCatRequest, catId int64) (sql.Result, error)
 	ValidatePostCat(ctx context.Context, catReq model.PostCatRequest, issuerId int64) error
 	ValidatePutCat(ctx context.Context, catReq model.PostCatRequest, catId int64, issuerId int64) error

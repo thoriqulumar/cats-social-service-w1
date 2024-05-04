@@ -57,20 +57,7 @@ func (r *Repo) GetCatOwnerByID(ctx context.Context, catId, ownerId int64) (data 
 }
 
 var (
-	postCat = `INSERT INTO cat ("ownerId", name, race, sex, "ageInMonth", description, "imageUrls", "hasMatched", "isDeleted", "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7, false, false, NOW()) RETURNING *;`
-)
-
-func (r *Repo) PostCat(ctx context.Context, args []interface{}) (cat model.Cat, err error) {
-	err = r.db.QueryRowxContext(ctx, postCat, args...).StructScan(&cat)
-	if err != nil {
-		return model.Cat{}, err
-	}
-
-	return cat, nil
-}
-
-var (
-	updateCat = `UPDATE cat SET name = $1, race = $2, sex = $3, ageInMonth = $4, description = $5, imageUrls = $6 WHERE id = $7;`
+	updateCat = `UPDATE cat SET name=$1, race=$2, sex=$3, "ageInMonth"=$4, description =$5, "imageUrls"=$6 WHERE id=$7;`
 )
 
 func (r *Repo) PutCat(ctx context.Context, args []interface{}) (sql.Result, error) {
