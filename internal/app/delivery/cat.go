@@ -25,7 +25,7 @@ func (h *Handler) GetCat(c *gin.Context) {
 
 	data, err := h.service.GetCat(ctx, catRequest, userId)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.JSON(cerror.GetCode(err), gin.H{
 			"err": err.Error(),
 		})
 		return
@@ -41,47 +41,39 @@ func (h *Handler) GetCat(c *gin.Context) {
 	})
 }
 
-func (h *Handler) PostCat(c *gin.Context) {
+func (h *Handler) RegisterCat(c *gin.Context) {
 	ctx := c.Request.Context()
-
-	catReq := model.PostCatRequest{}
-	err := json.NewDecoder(c.Request.Body).Decode(&catReq)
+	cat := model.Cat{}
+	err := json.NewDecoder(c.Request.Body).Decode(&cat)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": err.Error(),
 		})
 		return
 	}
-
-	userId := getRequestedUserIDFromRequest(c)
-
-	// err = h.service.ValidatePostCat(ctx, catReq, userId)
-	// if err != nil {
-	// 	c.JSON(cerror.GetCode(err), gin.H{
-	// 		"err": err.Error(),
-	// 	})
-	// 	return
-	// }
-
-	data, err := h.service.PostCat(ctx, catReq, userId)
+	// validation
+	err = h.service.ValidateCat(ctx, cat)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"err": err.Error(),
 		})
 		return
 	}
+	userId := getRequestedUserIDFromRequest(c)
+	data, err := h.service.RegisterCat(ctx, cat, userId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
 
-	id := strconv.Itoa(int(data.ID))
-
-	c.JSON(http.StatusCreated, model.PostCatResponse{
+	c.JSON(http.StatusCreated, model.RegisterCatResponse{
 		Message: "success",
 		Data: model.Data{
-			ID:        id,
+			ID:        data.IDStr,
 			CreatedAt: data.CreatedAt,
 		},
 	})
 }
-
 func (h *Handler) PutCat(c *gin.Context) {
 	ctx := c.Request.Context()
 

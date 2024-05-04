@@ -9,13 +9,81 @@ import (
 	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/validator"
 	"go.uber.org/zap"
 	"net/http"
+	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 	cerror "github.com/thoriqulumar/cats-social-service-w1/internal/pkg/error"
 )
+
+func (s *Service) RegisterCat(ctx context.Context, data model.Cat, userId int64) (model.Cat, error) {
+
+	data.OwnerId = userId
+	cat, err := s.repo.CreateCat(ctx, data)
+	if err != nil {
+		s.logger.Error("failed to create user", zap.Error(err))
+		return model.Cat{}, err
+	}
+	cat.IDStr = strconv.FormatInt(cat.ID, 10)
+	cat.CreatedAt = time.Now().UTC().Format(time.RFC3339)
+	return cat, nil
+
+}
+func (s *Service) ValidateCat(ctx context.Context, cat model.Cat) (err error) {
+
+	// Validate name
+	if len(cat.Name) < 1 || len(cat.Name) > 30 {
+		return errors.New("name must be between 1 and 30 characters long")
+	}
+
+	// Validate race
+	validRaces := []string{"Persian", "Maine Coon", "Siamese", "Ragdoll", "Bengal", "Sphynx", "British Shorthair", "Abyssinian", "Scottish Fold", "Birman"}
+	isValidRace := false
+	for _, race := range validRaces {
+		if cat.Race == race {
+			isValidRace = true
+			break
+		}
+	}
+	if !isValidRace {
+		return errors.New("race is invalid or not specified")
+	}
+
+	// Validate sex
+	if cat.Sex != "male" && cat.Sex != "female" {
+		return errors.New("sex must be either 'male' or 'female'")
+	}
+
+	// Validate ageInMonth
+	if cat.AgeInMonth < 1 || cat.AgeInMonth > 120082 {
+		return fmt.Errorf("ageInMonth must be between 1 and 120082, got %d", cat.AgeInMonth)
+	}
+
+	// Validate description
+	if len(cat.Description) < 1 || len(cat.Description) > 200 {
+		return errors.New("description must be between 1 and 200 characters long")
+	}
+
+	// Validate imageUrls
+	if len(cat.ImagesUrls) == 0 {
+		return errors.New("at least one imageUrl is required")
+	}
+	for _, urlStr := range cat.ImagesUrls {
+		if urlStr == "" {
+			return errors.New("imageUrls cannot contain empty strings")
+		}
+		if _, err := url.ParseRequestURI(urlStr); err != nil {
+			return errors.New("each imageUrl must be a valid URL")
+		}
+	}
+
+	//TODO add more validation from requirement docs
+
+	return nil
+}
 
 func parseAgeInMonthFilter(ageFilter string) (string, string, error) {
 	var operator, value string
@@ -88,24 +156,6 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId
 	return data, nil
 }
 
-func (s *Service) PostCat(ctx context.Context, catReq model.PostCatRequest, userId int64) (model.Cat, error) {
-	var args []interface{}
-
-	args = append(args, userId)
-	inputVal := reflect.ValueOf(catReq)
-	for i := 0; i < inputVal.NumField()-1; i++ {
-		args = append(args, inputVal.Field(i).Interface())
-	}
-	args = append(args, converter.ConvertStrArrToPgArr(catReq.ImageUrls))
-
-	data, err := s.repo.PostCat(ctx, args)
-	if err != nil {
-		return model.Cat{}, err
-	}
-
-	return data, nil
-}
-
 func (s *Service) PutCat(ctx context.Context, catReq model.PostCatRequest, catId int64) (sql.Result, error) {
 	var args []interface{}
 
@@ -122,34 +172,6 @@ func (s *Service) PutCat(ctx context.Context, catReq model.PostCatRequest, catId
 	}
 
 	return data, nil
-}
-
-func (s *Service) ValidatePostCat(ctx context.Context, catReq model.PostCatRequest, issuerId int64) error {
-	if !validator.IsString(catReq.Name) {
-		return cerror.New(http.StatusBadRequest, "name doesn’t pass validation")
-	}
-
-	if !validator.IsString(catReq.Race) {
-		return cerror.New(http.StatusBadRequest, "race doesn’t pass validation")
-	}
-
-	if !validator.IsString(catReq.Sex) {
-		return cerror.New(http.StatusBadRequest, "sex doesn’t pass validation")
-	}
-
-	if !validator.IsNumber(catReq.AgeInMonth) {
-		return cerror.New(http.StatusBadRequest, "age doesn’t pass validation")
-	}
-
-	if !validator.IsString(catReq.Description) {
-		return cerror.New(http.StatusBadRequest, "description doesn’t pass validation")
-	}
-
-	if !validator.IsValidImageUrls(catReq.ImageUrls) {
-		return cerror.New(http.StatusBadRequest, "imageUrls doesn’t pass validation")
-	}
-
-	return nil
 }
 
 func (s *Service) ValidatePutCat(ctx context.Context, catReq model.PostCatRequest, catId int64, issuerId int64) error {

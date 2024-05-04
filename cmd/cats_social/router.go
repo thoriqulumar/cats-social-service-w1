@@ -43,9 +43,8 @@ func matchRouters(r *gin.Engine, h *delivery.Handler, authMiddleware gin.Handler
 func registerCatRouters(r *gin.Engine, h *delivery.Handler, authMiddleware gin.HandlerFunc) {
 	// example use case of authMiddleware
 	r.Use(authMiddleware)
-
+	r.POST("/v1/cat", h.RegisterCat)
 	r.GET("/v1/cat", h.GetCat)
-	r.POST("/v1/cat", h.PostCat)
 	r.PUT("/v1/cat/:id", h.PutCat)
 	r.DELETE("/v1/cat/:id", h.DeleteCat)
 }

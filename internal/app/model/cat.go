@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+type RegisterCatResponse struct {
+	Message string `json:"message"`
+	Data    Data   `json:"data"`
+}
+
 type Cat struct {
 	IDStr       string      `json:"id"`
 	ID          int64       `json:"-" db:"id"`
