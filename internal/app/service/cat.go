@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -67,14 +68,13 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId
 		query += " AND ageInMonth " + operator + " ?"
 		args = append(args, value)
 	}
-	if catReq.Owned != nil {
-		if *catReq.Owned {
-			query += " AND ownerId = ?" // Get cats with ownerId equal to request's ownerId
-		} else {
-			query += " AND ownerId != ?" // Get cats with ownerId not equal to request's ownerId
-		}
+	fmt.Println("catReq", catReq)
+
+	if catReq.Owned {
+		query += " AND ownerId = ?" // Get cats with ownerId equal to request's ownerId
 		args = append(args, userId)
 	}
+
 	if catReq.Search != nil {
 		query += " AND name LIKE ?"
 		args = append(args, "%"+*catReq.Search+"%")
@@ -87,6 +87,8 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId
 	if catReq.Offset != nil {
 		offset = *catReq.Offset
 	}
+	fmt.Println("limit", limit)
+	fmt.Println("offset", offset)
 	args = append(args, limit, offset)
 	data, err := s.repo.GetCat(ctx, query, args)
 	if err != nil {
