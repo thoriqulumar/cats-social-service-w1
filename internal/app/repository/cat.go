@@ -3,10 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
-
 	"github.com/lib/pq"
-
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
+	"strconv"
 )
 
 var (
@@ -31,13 +30,13 @@ func (r *Repo) CreateCat(ctx context.Context, data model.Cat) (cat model.Cat, er
 
 var (
 	prefixGetCat = `SELECT * FROM cat WHERE 1=1 AND "isDeleted"=false`
-	suffixGetCat = `;`
+	suffixGetCat = ` ;`
 )
 
 func (r *Repo) GetCat(ctx context.Context, query string, args []interface{}) (cats []model.Cat, err error) {
 	concatenatedQuery := prefixGetCat + query + suffixGetCat
 
-	rows, err := r.db.QueryxContext(ctx, concatenatedQuery, args...)
+	rows, err := r.db.QueryxContext(ctx, replacePlaceholders(concatenatedQuery), args...)
 	if err != nil {
 		return []model.Cat{}, err
 	}
@@ -48,6 +47,7 @@ func (r *Repo) GetCat(ctx context.Context, query string, args []interface{}) (ca
 		if err != nil {
 			return []model.Cat{}, err
 		}
+		cat.IDStr = strconv.FormatInt(cat.ID, 10)
 		cats = append(cats, cat)
 	}
 
@@ -76,19 +76,6 @@ func (r *Repo) GetCatOwnerByID(ctx context.Context, catId, ownerId int64) (data 
 		return
 	}
 	return
-}
-
-var (
-	postCat = `INSERT INTO cat ("ownerId", name, race, sex, "ageInMonth", description, "imageUrls", "hasMatched", "isDeleted", "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7, false, false, NOW()) RETURNING *;`
-)
-
-func (r *Repo) PostCat(ctx context.Context, args []interface{}) (cat model.Cat, err error) {
-	err = r.db.QueryRowxContext(ctx, postCat, args...).StructScan(&cat)
-	if err != nil {
-		return model.Cat{}, err
-	}
-
-	return cat, nil
 }
 
 var (

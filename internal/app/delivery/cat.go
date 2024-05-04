@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -14,9 +13,13 @@ import (
 func (h *Handler) GetCat(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	rawQuery := c.Request.URL.RawQuery
-
-	catRequest := parseCatRequestFromQuery(rawQuery)
+	catRequest, err := parseCatRequestFromQuery(c.Request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
 
 	userId := getRequestedUserIDFromRequest(c)
 
@@ -57,68 +60,20 @@ func (h *Handler) RegisterCat(c *gin.Context) {
 		return
 	}
 	userId := getRequestedUserIDFromRequest(c)
-	fmt.Println("Extracted userId:", userId)
 	data, err := h.service.RegisterCat(ctx, cat, userId)
-	fmt.Println("Deliver Data", data)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
 
-	c.JSON(http.StatusOK, model.RegisterCatResponse{
-		Message: "success",
-		Data: struct {
-			ID        int64  `json:"id"`
-			CreatedAt string `json:"createdAt"`
-		}{
-			ID: data.ID,
-
-			CreatedAt: data.CreatedAt,
-		},
-	})
-}
-func (h *Handler) PostCat(c *gin.Context) {
-	ctx := c.Request.Context()
-
-	catReq := model.PostCatRequest{}
-	err := json.NewDecoder(c.Request.Body).Decode(&catReq)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"err": err.Error(),
-		})
-		return
-	}
-
-	userId := getRequestedUserIDFromRequest(c)
-
-	// err = h.service.ValidatePostCat(ctx, catReq, userId)
-	// if err != nil {
-	// 	c.JSON(cerror.GetCode(err), gin.H{
-	// 		"err": err.Error(),
-	// 	})
-	// 	return
-	// }
-
-	data, err := h.service.PostCat(ctx, catReq, userId)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"err": err.Error(),
-		})
-		return
-	}
-
-	id := strconv.Itoa(int(data.ID))
-
-	c.JSON(http.StatusCreated, model.PostCatResponse{
+	c.JSON(http.StatusCreated, model.RegisterCatResponse{
 		Message: "success",
 		Data: model.Data{
-			ID:        id,
+			ID:        data.IDStr,
 			CreatedAt: data.CreatedAt,
 		},
 	})
 }
-
 func (h *Handler) PutCat(c *gin.Context) {
 	ctx := c.Request.Context()
 

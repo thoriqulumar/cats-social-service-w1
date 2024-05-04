@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/email"
@@ -33,6 +34,7 @@ func (s *Service) Register(ctx context.Context, data model.User) (userWithAccess
 	}
 
 	// create JWT accessToken
+	user.IDStr = strconv.FormatInt(user.ID, 10)
 	accessToken, err := s.generateJWT(ctx, user)
 	if err != nil {
 		s.logger.Error("failed generate JWT", zap.Error(err))
@@ -90,6 +92,7 @@ func (s *Service) Login(ctx context.Context, user model.LoginRequest) (data mode
 	}
 
 	// create JWT accessToken
+	existData.IDStr = strconv.FormatInt(existData.ID, 10)
 	accessToken, err := s.generateJWT(ctx, existData)
 	if err != nil {
 		s.logger.Error("failed generate JWT", zap.Error(err))

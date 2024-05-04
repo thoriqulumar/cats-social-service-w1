@@ -2,11 +2,11 @@ package delivery
 
 import (
 	"encoding/json"
-	"strconv"
-	"strings"
-
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
+	"net/http"
+	"strconv"
 )
 
 func getRequestedUserIDFromRequest(c *gin.Context) int64 {
@@ -14,7 +14,8 @@ func getRequestedUserIDFromRequest(c *gin.Context) int64 {
 	if !ok {
 		return 0
 	}
-	return int64(userData.(map[string]any)["id"].(float64))
+	userID, _ := strconv.ParseInt(userData.(map[string]any)["id"].(string), 10, 64)
+	return userID
 }
 
 func getRequestedUserDataFromRequest(c *gin.Context) (user model.User) {
@@ -33,45 +34,56 @@ func getRequestedUserDataFromRequest(c *gin.Context) (user model.User) {
 	return
 }
 
-func parseCatRequestFromQuery(rawQuery string) model.GetCatRequest {
-	request := model.GetCatRequest{}
+func parseCatRequestFromQuery(r *http.Request) (model.GetCatRequest, error) {
+	var req model.GetCatRequest
 
-	if rawQuery == "" {
-		return request
+	// Parse query parameters
+	err := r.ParseForm()
+	if err != nil {
+		return req, err
 	}
 
-	queryParams := strings.Split(rawQuery, "&")
-
-	for _, param := range queryParams {
-		parts := strings.SplitN(param, "=", 2)
-		key := parts[0]
-		value := parts[1]
-
-		switch key {
-		case "id":
-			request.ID = &value
-		case "limit":
-			limit, _ := strconv.Atoi(value)
-			request.Limit = &limit
-		case "offset":
-			offset, _ := strconv.Atoi(value)
-			request.Offset = &offset
-		case "race":
-			request.Race = &value
-		case "sex":
-			request.Sex = &value
-		case "hasMatched":
-			hasMatched, _ := strconv.ParseBool(value)
-			request.HasMatched = &hasMatched
-		case "ageInMonth":
-			request.AgeInMonth = &value
-		case "owned":
-			owned, _ := strconv.ParseBool(value)
-			request.Owned = &owned
-		case "search":
-			request.Search = &value
-		}
+	// Convert form values to struct fields
+	req.ID = r.FormValue("id")
+	limit := parseFormInt(r.FormValue("limit"))
+	if limit == 0 {
+		limit = 5 // default limit
 	}
+	req.Limit = limit
+	req.Offset = parseFormInt(r.FormValue("offset"))
+	req.Race = r.FormValue("race")
+	req.Sex = r.FormValue("sex")
+	req.HasMatched = parseFormBoolPtr(r.FormValue("hasMatched"))
+	req.AgeInMonth = r.FormValue("ageInMonth")
+	req.Owned = parseFormBoolPtr(r.FormValue("owned"))
+	req.Search = r.FormValue("search")
 
-	return request
+	return req, nil
+}
+
+func parseFormInt(value string) int {
+	// Handle conversion error gracefully
+	var result int
+	_, err := fmt.Sscanf(value, "%d", &result)
+	if err != nil {
+		return 0
+	}
+	return result
+}
+
+func parseFormBool(value string) bool {
+	// Handle conversion error gracefully
+	if value == "true" || value == "1" {
+		return true
+	}
+	return false
+}
+
+func parseFormBoolPtr(value string) *bool {
+	// Handle conversion error gracefully
+	if value == "" {
+		return nil
+	}
+	result := parseFormBool(value)
+	return &result
 }

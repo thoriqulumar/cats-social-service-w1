@@ -1,8 +1,8 @@
 package model
 
 type MatchRequest struct {
-	MatchCatId int64  `json:"matchCatId"`
-	UserCatId  int64  `json:"userCatId"`
+	MatchCatId string `json:"matchCatId"`
+	UserCatId  string `json:"userCatId"`
 	Message    string `json:"message"`
 }
 
@@ -20,7 +20,8 @@ var (
 )
 
 type Match struct {
-	ID         int64       `json:"id" db:"id"`
+	IDStr      string      `json:"id"`
+	ID         int64       `json:"-" db:"id"`
 	IssuedID   int64       `json:"issuedId" db:"issuedId"`
 	ReceiverID int64       `json:"-" db:"receiverId"` // hide on response
 	MatchCatId int64       `json:"matchCatId" db:"matchCatId"`
@@ -41,7 +42,7 @@ type MatchListResponse struct {
 }
 
 type MatchData struct {
-	ID             int          `json:"id"`
+	ID             string       `json:"id"`
 	IssuedBy       UserResponse `json:"issuedBy"`
 	MatchCatDetail Cat          `json:"matchCatDetail"`
 	UserCatDetail  Cat          `json:"userCatDetail"`

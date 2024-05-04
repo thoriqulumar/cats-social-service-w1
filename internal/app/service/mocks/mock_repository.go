@@ -6,9 +6,11 @@ package mocks
 
 import (
 	context "context"
+	sql "database/sql"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	sqlx "github.com/jmoiron/sqlx"
 	model "github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 )
 
@@ -50,6 +52,20 @@ func (mr *MockrepositoryMockRecorder) CreateUser(ctx, data interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*Mockrepository)(nil).CreateUser), ctx, data)
 }
 
+// DeleteCatById mocks base method.
+func (m *Mockrepository) DeleteCatById(ctx context.Context, id int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCatById", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCatById indicates an expected call of DeleteCatById.
+func (mr *MockrepositoryMockRecorder) DeleteCatById(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCatById", reflect.TypeOf((*Mockrepository)(nil).DeleteCatById), ctx, id)
+}
+
 // DeleteMatchById mocks base method.
 func (m *Mockrepository) DeleteMatchById(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
@@ -62,6 +78,36 @@ func (m *Mockrepository) DeleteMatchById(ctx context.Context, id int64) error {
 func (mr *MockrepositoryMockRecorder) DeleteMatchById(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMatchById", reflect.TypeOf((*Mockrepository)(nil).DeleteMatchById), ctx, id)
+}
+
+// GetAllMatchData mocks base method.
+func (m *Mockrepository) GetAllMatchData(ctx context.Context, id int64) (*sqlx.Rows, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllMatchData", ctx, id)
+	ret0, _ := ret[0].(*sqlx.Rows)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllMatchData indicates an expected call of GetAllMatchData.
+func (mr *MockrepositoryMockRecorder) GetAllMatchData(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllMatchData", reflect.TypeOf((*Mockrepository)(nil).GetAllMatchData), ctx, id)
+}
+
+// GetCat mocks base method.
+func (m *Mockrepository) GetCat(ctx context.Context, query string, args []interface{}) ([]model.Cat, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCat", ctx, query, args)
+	ret0, _ := ret[0].([]model.Cat)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCat indicates an expected call of GetCat.
+func (mr *MockrepositoryMockRecorder) GetCat(ctx, query, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCat", reflect.TypeOf((*Mockrepository)(nil).GetCat), ctx, query, args)
 }
 
 // GetCatByID mocks base method.
@@ -169,6 +215,21 @@ func (mr *MockrepositoryMockRecorder) GetUserByEmail(ctx, email interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*Mockrepository)(nil).GetUserByEmail), ctx, email)
 }
 
+// GetUserById mocks base method.
+func (m *Mockrepository) GetUserById(ctx context.Context, id int64) (model.UserResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserById", ctx, id)
+	ret0, _ := ret[0].(model.UserResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserById indicates an expected call of GetUserById.
+func (mr *MockrepositoryMockRecorder) GetUserById(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserById", reflect.TypeOf((*Mockrepository)(nil).GetUserById), ctx, id)
+}
+
 // MatchCat mocks base method.
 func (m *Mockrepository) MatchCat(ctx context.Context, data model.MatchRequest, issuedId, receiverID int64) (model.Match, error) {
 	m.ctrl.T.Helper()
@@ -182,6 +243,36 @@ func (m *Mockrepository) MatchCat(ctx context.Context, data model.MatchRequest, 
 func (mr *MockrepositoryMockRecorder) MatchCat(ctx, data, issuedId, receiverID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MatchCat", reflect.TypeOf((*Mockrepository)(nil).MatchCat), ctx, data, issuedId, receiverID)
+}
+
+// PostCat mocks base method.
+func (m *Mockrepository) PostCat(ctx context.Context, args []interface{}) (model.Cat, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PostCat", ctx, args)
+	ret0, _ := ret[0].(model.Cat)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PostCat indicates an expected call of PostCat.
+func (mr *MockrepositoryMockRecorder) PostCat(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostCat", reflect.TypeOf((*Mockrepository)(nil).PostCat), ctx, args)
+}
+
+// PutCat mocks base method.
+func (m *Mockrepository) PutCat(ctx context.Context, args []interface{}) (sql.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PutCat", ctx, args)
+	ret0, _ := ret[0].(sql.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PutCat indicates an expected call of PutCat.
+func (mr *MockrepositoryMockRecorder) PutCat(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutCat", reflect.TypeOf((*Mockrepository)(nil).PutCat), ctx, args)
 }
 
 // UpdateMatchStatus mocks base method.

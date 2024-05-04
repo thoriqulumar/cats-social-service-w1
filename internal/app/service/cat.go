@@ -5,29 +5,29 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/converter"
+	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/validator"
+	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
-	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/converter"
 	cerror "github.com/thoriqulumar/cats-social-service-w1/internal/pkg/error"
-	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/validator"
-
-	"go.uber.org/zap"
 )
 
 func (s *Service) RegisterCat(ctx context.Context, data model.Cat, userId int64) (model.Cat, error) {
 
 	data.OwnerId = userId
 	cat, err := s.repo.CreateCat(ctx, data)
-	fmt.Println(cat)
 	if err != nil {
 		s.logger.Error("failed to create user", zap.Error(err))
 		return model.Cat{}, err
 	}
+	cat.IDStr = strconv.FormatInt(cat.ID, 10)
 	cat.CreatedAt = time.Now().UTC().Format(time.RFC3339)
 	return cat, nil
 
@@ -88,98 +88,69 @@ func (s *Service) ValidateCat(ctx context.Context, cat model.Cat) (err error) {
 func parseAgeInMonthFilter(ageFilter string) (string, string, error) {
 	var operator, value string
 
-	parts := strings.Split(ageFilter, "=")
-	if len(parts) != 2 {
-		return "", "", errors.New("invalid ageInMonth filter format")
-	}
-
-	operator = "="
-	value = parts[1]
-
-	if strings.HasPrefix(parts[1], "<") {
-		operator = "<"
-		value = parts[1][1:]
-	} else if strings.HasPrefix(parts[1], ">") {
+	if strings.Contains(ageFilter, ">") {
 		operator = ">"
-		value = parts[1][1:]
+		value = strings.TrimPrefix(ageFilter, ">")
+	}
+	if strings.Contains(ageFilter, "<") {
+		operator = "<"
+		value = strings.TrimPrefix(ageFilter, "<")
+	}
+	if value == "" {
+		operator = "="
+		value = strings.TrimPrefix(ageFilter, "=")
 	}
 
 	return operator, value, nil
 }
 
 func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId int64) ([]model.Cat, error) {
-	limit := 5
-	offset := 0
-
 	var query string
 	var args []interface{}
 
-	if catReq.ID != nil {
+	if catReq.ID != "" {
 		query += " AND id = ?"
-		args = append(args, *catReq.ID)
+		// parsing to int64
+		id, _ := strconv.ParseInt(catReq.ID, 10, 64)
+		args = append(args, id)
 	}
-	if catReq.Sex != nil {
+	if catReq.Sex != "" {
 		query += " AND sex = ?"
-		args = append(args, *catReq.Sex)
+		args = append(args, catReq.Sex)
 	}
-	if catReq.Race != nil {
+	if catReq.Race != "" {
 		query += " AND race = ?"
-		args = append(args, *catReq.Race)
+		args = append(args, catReq.Race)
 	}
 	if catReq.HasMatched != nil {
-		query += " AND hasMatched = ?"
+		query += ` AND "hasMatched" = ?`
 		args = append(args, *catReq.HasMatched)
 	}
-	if catReq.AgeInMonth != nil {
-		operator, value, err := parseAgeInMonthFilter(*catReq.AgeInMonth)
+	if catReq.AgeInMonth != "" {
+		operator, value, err := parseAgeInMonthFilter(catReq.AgeInMonth)
 		if err != nil {
 			return nil, err
 		}
-		query += " AND ageInMonth " + operator + " ?"
+		query += ` AND "ageInMonth" ` + operator + " ?"
 		args = append(args, value)
 	}
 	if catReq.Owned != nil {
 		if *catReq.Owned {
-			query += " AND ownerId = ?" // Get cats with ownerId equal to request's ownerId
+			query += ` AND "ownerId" = ?` // Get cats with ownerId equal to request's ownerId
 		} else {
-			query += " AND ownerId != ?" // Get cats with ownerId not equal to request's ownerId
+			query += ` AND "ownerId" != ?` // Get cats with ownerId not equal to request's ownerId
 		}
 		args = append(args, userId)
 	}
-	if catReq.Search != nil {
+	if catReq.Search != "" {
 		query += " AND name LIKE ?"
-		args = append(args, "%"+*catReq.Search+"%")
+		args = append(args, "%"+catReq.Search+"%")
 	}
 
-	query += " LIMIT $1 OFFSET $2"
-	if catReq.Limit != nil {
-		limit = *catReq.Limit
-	}
-	if catReq.Offset != nil {
-		offset = *catReq.Offset
-	}
-	args = append(args, limit, offset)
+	query += fmt.Sprintf(` LIMIT %d OFFSET %d`, catReq.Limit, catReq.Offset)
 	data, err := s.repo.GetCat(ctx, query, args)
 	if err != nil {
 		return []model.Cat{}, err
-	}
-
-	return data, nil
-}
-
-func (s *Service) PostCat(ctx context.Context, catReq model.PostCatRequest, userId int64) (model.Cat, error) {
-	var args []interface{}
-
-	args = append(args, userId)
-	inputVal := reflect.ValueOf(catReq)
-	for i := 0; i < inputVal.NumField()-1; i++ {
-		args = append(args, inputVal.Field(i).Interface())
-	}
-	args = append(args, converter.ConvertStrArrToPgArr(catReq.ImageUrls))
-
-	data, err := s.repo.PostCat(ctx, args)
-	if err != nil {
-		return model.Cat{}, err
 	}
 
 	return data, nil
@@ -193,6 +164,7 @@ func (s *Service) PutCat(ctx context.Context, catReq model.PostCatRequest, catId
 		args = append(args, inputVal.Field(i).Interface())
 	}
 	args = append(args, converter.ConvertStrArrToPgArr(catReq.ImageUrls))
+	args = append(args, catId)
 
 	data, err := s.repo.PutCat(ctx, args)
 	if err != nil {
@@ -200,34 +172,6 @@ func (s *Service) PutCat(ctx context.Context, catReq model.PostCatRequest, catId
 	}
 
 	return data, nil
-}
-
-func (s *Service) ValidatePostCat(ctx context.Context, catReq model.PostCatRequest, issuerId int64) error {
-	if !validator.IsString(catReq.Name) {
-		return cerror.New(http.StatusBadRequest, "name doesn’t pass validation")
-	}
-
-	if !validator.IsString(catReq.Race) {
-		return cerror.New(http.StatusBadRequest, "race doesn’t pass validation")
-	}
-
-	if !validator.IsString(catReq.Sex) {
-		return cerror.New(http.StatusBadRequest, "sex doesn’t pass validation")
-	}
-
-	if !validator.IsNumber(catReq.AgeInMonth) {
-		return cerror.New(http.StatusBadRequest, "age doesn’t pass validation")
-	}
-
-	if !validator.IsString(catReq.Description) {
-		return cerror.New(http.StatusBadRequest, "description doesn’t pass validation")
-	}
-
-	if !validator.IsValidImageUrls(catReq.ImageUrls) {
-		return cerror.New(http.StatusBadRequest, "imageUrls doesn’t pass validation")
-	}
-
-	return nil
 }
 
 func (s *Service) ValidatePutCat(ctx context.Context, catReq model.PostCatRequest, catId int64, issuerId int64) error {

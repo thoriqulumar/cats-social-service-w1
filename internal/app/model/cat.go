@@ -8,14 +8,12 @@ import (
 
 type RegisterCatResponse struct {
 	Message string `json:"message"`
-	Data    struct {
-		ID        int64  `json:"id"`
-		CreatedAt string `json:"createdAt"`
-	} `json:"data"`
+	Data    Data   `json:"data"`
 }
 
 type Cat struct {
-	ID          int64       `json:"id" db:"id"`
+	IDStr       string      `json:"id"`
+	ID          int64       `json:"-" db:"id"`
 	OwnerId     int64       `json:"ownerId" db:"ownerId"`
 	Name        string      `json:"name" db:"name"`
 	Race        string      `json:"race" db:"race"`
@@ -29,15 +27,15 @@ type Cat struct {
 }
 
 type GetCatRequest struct {
-	ID         *string `json:"id,omitempty"`
-	Limit      *int    `json:"limit,omitempty"`
-	Offset     *int    `json:"offset,omitempty"`
-	Race       *string `json:"race,omitempty"`
-	Sex        *string `json:"sex,omitempty"`
-	HasMatched *bool   `json:"hasMatched,omitempty"`
-	AgeInMonth *string `json:"ageInMonth,omitempty"`
-	Owned      *bool   `json:"owned,omitempty"`
-	Search     *string `json:"search,omitempty"`
+	ID         string `json:"id,omitempty"`
+	Limit      int    `json:"limit,omitempty"`
+	Offset     int    `json:"offset,omitempty"`
+	Race       string `json:"race,omitempty"`
+	Sex        string `json:"sex,omitempty"`
+	HasMatched *bool  `json:"hasMatched,omitempty"`
+	AgeInMonth string `json:"ageInMonth,omitempty"`
+	Owned      *bool  `json:"owned,omitempty"`
+	Search     string `json:"search,omitempty"`
 }
 
 type GetCatResponse struct {
