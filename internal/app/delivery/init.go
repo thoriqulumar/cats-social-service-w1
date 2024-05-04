@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 )
@@ -12,6 +13,9 @@ type service interface {
 	Login(ctx context.Context, data model.LoginRequest) (user model.UserWithAccess, err error)
 
 	GetCat(ctx context.Context, req model.GetCatRequest, userId int64) ([]model.Cat, error)
+	PutCat(ctx context.Context, catReq model.PostCatRequest, catId int64) (sql.Result, error)
+	ValidatePostCat(ctx context.Context, catReq model.PostCatRequest, issuerId int64) error
+	ValidatePutCat(ctx context.Context, catReq model.PostCatRequest, catId int64, issuerId int64) error
 
 	MatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (data model.Match, err error)
 	ValidateMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error)

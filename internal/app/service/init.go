@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+
 	"github.com/jmoiron/sqlx"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/config"
@@ -20,6 +22,7 @@ type repository interface {
 	GetCat(ctx context.Context, query string, args []interface{}) ([]model.Cat, error)
 	GetCatByID(ctx context.Context, id int64) (data model.Cat, err error)
 	GetCatOwnerByID(ctx context.Context, catId, ownerId int64) (data model.Cat, err error)
+	PutCat(ctx context.Context, args []interface{}) (sql.Result, error)
 
 	MatchCat(ctx context.Context, data model.MatchRequest, issuedId, receiverID int64) (model.Match, error)
 	GetMatchByID(ctx context.Context, id int64) (data model.Match, err error)

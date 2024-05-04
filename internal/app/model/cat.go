@@ -14,7 +14,7 @@ type Cat struct {
 	Sex         string      `json:"sex" db:"sex"`
 	AgeInMonth  int         `json:"ageInMonth" db:"ageInMonth"`
 	Description string      `json:"description" db:"description"`
-	ImagesUrl   StringArray `json:"imagesUrl" db:"imageUrls"`
+	ImagesUrls  StringArray `json:"imageUrls" db:"imageUrls"`
 	HasMatched  bool        `json:"hasMatched" db:"hasMatched"`
 	IsDeleted   bool        `json:"isDeleted" db:"isDeleted"`
 	CreatedAt   string      `json:"createdAt" db:"createdAt"`
@@ -35,6 +35,29 @@ type GetCatRequest struct {
 type GetCatResponse struct {
 	Message string `json:"message"`
 	Data    []Cat  `json:"data"`
+}
+
+type PostCatRequest struct {
+	Name        string      `json:"name"`
+	Race        string      `json:"race"`
+	Sex         string      `json:"sex"`
+	AgeInMonth  int         `json:"ageInMonth"`
+	Description string      `json:"description"`
+	ImageUrls   StringArray `json:"imageUrls"`
+}
+
+type Data struct {
+	ID        string `json:"id"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type PostCatResponse struct {
+	Message string `json:"message"`
+	Data    Data   `json:"data"`
+}
+
+type PutCatResponse struct {
+	Message string `json:"message"`
 }
 
 // StringArray represents a string array that can be scanned from the database.

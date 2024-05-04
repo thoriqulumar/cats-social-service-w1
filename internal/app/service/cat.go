@@ -2,10 +2,16 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
+	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/converter"
+	cerror "github.com/thoriqulumar/cats-social-service-w1/internal/pkg/error"
+	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/validator"
 )
 
 func parseAgeInMonthFilter(ageFilter string) (string, string, error) {
@@ -88,4 +94,96 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId
 	}
 
 	return data, nil
+}
+
+func (s *Service) PutCat(ctx context.Context, catReq model.PostCatRequest, catId int64) (sql.Result, error) {
+	var args []interface{}
+
+	inputVal := reflect.ValueOf(catReq)
+	for i := 0; i < inputVal.NumField()-1; i++ {
+		args = append(args, inputVal.Field(i).Interface())
+	}
+	args = append(args, converter.ConvertStrArrToPgArr(catReq.ImageUrls))
+
+	data, err := s.repo.PutCat(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func (s *Service) ValidatePostCat(ctx context.Context, catReq model.PostCatRequest, issuerId int64) error {
+	if !validator.IsString(catReq.Name) {
+		return cerror.New(http.StatusBadRequest, "name doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Race) {
+		return cerror.New(http.StatusBadRequest, "race doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Sex) {
+		return cerror.New(http.StatusBadRequest, "sex doesn’t pass validation")
+	}
+
+	if !validator.IsNumber(catReq.AgeInMonth) {
+		return cerror.New(http.StatusBadRequest, "age doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Description) {
+		return cerror.New(http.StatusBadRequest, "description doesn’t pass validation")
+	}
+
+	if !validator.IsValidImageUrls(catReq.ImageUrls) {
+		return cerror.New(http.StatusBadRequest, "imageUrls doesn’t pass validation")
+	}
+
+	return nil
+}
+
+func (s *Service) ValidatePutCat(ctx context.Context, catReq model.PostCatRequest, catId int64, issuerId int64) error {
+	catData, err := s.repo.GetCatByID(ctx, catId)
+
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return cerror.New(http.StatusNotFound, "catId is not found")
+	}
+
+	if catData.HasMatched {
+		return cerror.New(http.StatusBadRequest, "sex is edited when cat is already requested to match")
+	}
+
+	_, err = s.repo.GetCatOwnerByID(ctx, catId, issuerId)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return cerror.New(http.StatusNotFound, "issuedId is not the owner of this cat")
+		}
+		// Handle case where no cat was found (data is zero-value Cat)
+		return cerror.New(http.StatusNotFound, "issuedId is not the owner of this cat")
+	}
+
+	if !validator.IsString(catReq.Name) {
+		return cerror.New(http.StatusBadRequest, "name doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Race) {
+		return cerror.New(http.StatusBadRequest, "race doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Sex) {
+		return cerror.New(http.StatusBadRequest, "sex doesn’t pass validation")
+	}
+
+	if !validator.IsNumber(catReq.AgeInMonth) {
+		return cerror.New(http.StatusBadRequest, "age doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Description) {
+		return cerror.New(http.StatusBadRequest, "description doesn’t pass validation")
+	}
+
+	if !validator.IsValidImageUrls(catReq.ImageUrls) {
+		return cerror.New(http.StatusBadRequest, "imageUrls doesn’t pass validation")
+	}
+
+	return nil
 }
