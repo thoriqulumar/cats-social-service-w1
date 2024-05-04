@@ -9,7 +9,10 @@ import (
 )
 
 var (
-	createCatQuery = `INSERT INTO "cat" ("name", "race", "sex", "ageInMonth", "description", "imageUrls") VALUES($1, $2, $3, $4, $5, $6) RETURNING *;`
+	createCatQuery = `INSERT INTO "cat" ("name", "race", "sex", "ageInMonth", "description", "imageUrls", "ownerId", "createdAt", "hasMatched", "isDeleted") 
+	VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(),false,false) 
+	RETURNING "id", "ownerId", "name", "race", "sex", "ageInMonth", "description", "imageUrls", 
+	COALESCE("hasMatched", false) AS "hasMatched", COALESCE("isDeleted", false) AS "isDeleted";`
 )
 
 func (r *Repo) CreateCat(ctx context.Context, data model.Cat) (cat model.Cat, err error) {
@@ -20,9 +23,34 @@ func (r *Repo) CreateCat(ctx context.Context, data model.Cat) (cat model.Cat, er
 
 	// db query goes here
 
-	err = r.db.QueryRowxContext(ctx, createCatQuery, data.Name, data.Race, data.Sex, data.AgeInMonth, data.Description, imagesUrlStr).StructScan(&cat)
+	err = r.db.QueryRowxContext(ctx, createCatQuery, data.Name, data.Race, data.Sex, data.AgeInMonth, data.Description, imagesUrlStr, data.OwnerId).StructScan(&cat)
 
 	return cat, err
+}
+
+var (
+	prefixGetCat = `SELECT * FROM cat WHERE 1=1`
+	suffixGetCat = `;`
+)
+
+func (r *Repo) GetCat(ctx context.Context, query string, args []interface{}) (cats []model.Cat, err error) {
+	concatenatedQuery := prefixGetCat + query + suffixGetCat
+
+	rows, err := r.db.QueryxContext(ctx, concatenatedQuery, args...)
+	if err != nil {
+		return []model.Cat{}, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var cat model.Cat
+		err = rows.StructScan(&cat)
+		if err != nil {
+			return []model.Cat{}, err
+		}
+		cats = append(cats, cat)
+	}
+
+	return cats, nil
 }
 
 var (
@@ -50,7 +78,7 @@ func (r *Repo) GetCatOwnerByID(ctx context.Context, catId, ownerId int64) (data 
 }
 
 // var (
-//     updateCatIsMatched = `UPDATE "cat" SET "isAlreadyMatched"=true WHERE "id"=$1 AND "ownerId"=$2;`
+//     updateCatIsMatched = `UPDATE "cat" SET "hasMatched"=true WHERE "id"=$1 AND "ownerId"=$2;`
 // )
 
 // func (r *Repo) UpdateCatIsMatched(ctx context.Context, catId, ownerId int64) (err error) {

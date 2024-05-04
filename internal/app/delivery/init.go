@@ -11,12 +11,16 @@ type service interface {
 	Register(ctx context.Context, data model.User) (user model.UserWithAccess, err error)
 	Login(ctx context.Context, data model.LoginRequest) (user model.UserWithAccess, err error)
 
+	RegisterCat(ctx context.Context, data model.Cat, userId int64) (model.Cat, error)
+	ValidateCat(ctx context.Context, cat model.Cat) (err error)
+	GetCat(ctx context.Context, req model.GetCatRequest, userId int64) ([]model.Cat, error)
+
 	MatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (data model.Match, err error)
 	ValidateMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error)
 	DeleteMatch(ctx context.Context, id, issuedId int64) (err error)
-
-	RegisterCat(ctx context.Context, data model.Cat) (cat model.Cat, err error)
-	ValidateCat(ctx context.Context, cat model.Cat) (err error)
+	ApproveMatch(ctx context.Context, id int64, receiverID int64) (matchID string, err error)
+	RejectMatch(ctx context.Context, id int64) (matchID string, err error)
+	GetMatchData(ctx context.Context, id int64) (listMatch []model.MatchData, err error)
 }
 
 type Handler struct {
