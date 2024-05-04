@@ -22,6 +22,7 @@ type repository interface {
 	GetCat(ctx context.Context, query string, args []interface{}) ([]model.Cat, error)
 	GetCatByID(ctx context.Context, id int64) (data model.Cat, err error)
 	GetCatOwnerByID(ctx context.Context, catId, ownerId int64) (data model.Cat, err error)
+	PostCat(ctx context.Context, args []interface{}) (cat model.Cat, err error)
 	PutCat(ctx context.Context, args []interface{}) (sql.Result, error)
 	DeleteCatById(ctx context.Context, id int64) (err error)
 

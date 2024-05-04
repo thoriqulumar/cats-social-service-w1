@@ -28,7 +28,7 @@ type GetCatRequest struct {
 	Sex        *string `json:"sex,omitempty"`
 	HasMatched *bool   `json:"hasMatched,omitempty"`
 	AgeInMonth *string `json:"ageInMonth,omitempty"`
-	Owned      *bool   `json:"owned,omitempty"`
+	Owned      bool    `json:"owned,omitempty"`
 	Search     *string `json:"search,omitempty"`
 }
 

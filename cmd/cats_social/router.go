@@ -45,6 +45,7 @@ func registerCatRouters(r *gin.Engine, h *delivery.Handler, authMiddleware gin.H
 	r.Use(authMiddleware)
 
 	r.GET("/v1/cat", h.GetCat)
+	r.POST("/v1/cat", h.PostCat)
 	r.PUT("/v1/cat/:id", h.PutCat)
 	r.DELETE("/v1/cat/:id", h.DeleteCat)
 }
