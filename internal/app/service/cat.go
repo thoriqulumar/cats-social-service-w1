@@ -99,6 +99,7 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId
 func (s *Service) PostCat(ctx context.Context, catReq model.PostCatRequest, userId int64) (model.Cat, error) {
 	var args []interface{}
 
+	args = append(args, userId)
 	inputVal := reflect.ValueOf(catReq)
 	for i := 0; i < inputVal.NumField()-1; i++ {
 		args = append(args, inputVal.Field(i).Interface())
