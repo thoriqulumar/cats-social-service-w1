@@ -6,6 +6,14 @@ import (
 	"strings"
 )
 
+type RegisterCatResponse struct {
+	Message string `json:"message"`
+	Data    struct {
+		ID        int64  `json:"id"`
+		CreatedAt string `json:"createdAt"`
+	} `json:"data"`
+}
+
 type Cat struct {
 	ID          int64       `json:"id" db:"id"`
 	OwnerId     int64       `json:"ownerId" db:"ownerId"`
@@ -28,7 +36,7 @@ type GetCatRequest struct {
 	Sex        *string `json:"sex,omitempty"`
 	HasMatched *bool   `json:"hasMatched,omitempty"`
 	AgeInMonth *string `json:"ageInMonth,omitempty"`
-	Owned      bool    `json:"owned,omitempty"`
+	Owned      *bool   `json:"owned,omitempty"`
 	Search     *string `json:"search,omitempty"`
 }
 

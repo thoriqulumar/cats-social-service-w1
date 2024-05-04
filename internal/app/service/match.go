@@ -162,13 +162,13 @@ func (s *Service) RejectMatch(ctx context.Context, id int64) (matchID string, er
 	return
 }
 
-func (s *Service) GetMatchData(ctx context.Context, id int64) (listMatch []model.MatchData, err error){
+func (s *Service) GetMatchData(ctx context.Context, id int64) (listMatch []model.MatchData, err error) {
 	var listData []model.MatchData
 
 	rows, err := s.repo.GetAllMatchData(ctx, id)
 
 	if err != nil {
-		return nil,  cerror.New(http.StatusInternalServerError, "failed getting match data")
+		return nil, cerror.New(http.StatusInternalServerError, "failed getting match data")
 	}
 
 	defer rows.Close()
@@ -182,20 +182,20 @@ func (s *Service) GetMatchData(ctx context.Context, id int64) (listMatch []model
 		if err != nil {
 			return
 		}
-		
+
 		issuedBy, _ = s.repo.GetUserById(ctx, match.IssuedID)
 		matchCat, _ = s.repo.GetCatByID(ctx, match.MatchCatId)
 		userCat, _ = s.repo.GetCatByID(ctx, match.UserCatId)
 
 		matchData = model.MatchData{
-			ID: int(match.ID),
-			IssuedBy: issuedBy,
+			ID:             int(match.ID),
+			IssuedBy:       issuedBy,
 			MatchCatDetail: matchCat,
-			UserCatDetail: userCat,
-			Message: match.Message,
-			CreatedAt: match.CreatedAt,
+			UserCatDetail:  userCat,
+			Message:        match.Message,
+			CreatedAt:      match.CreatedAt,
 		}
-		
+
 		listData = append(listData, matchData)
 	}
 

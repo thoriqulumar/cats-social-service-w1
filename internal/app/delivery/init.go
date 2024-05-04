@@ -12,6 +12,8 @@ type service interface {
 	Register(ctx context.Context, data model.User) (user model.UserWithAccess, err error)
 	Login(ctx context.Context, data model.LoginRequest) (user model.UserWithAccess, err error)
 
+	RegisterCat(ctx context.Context, data model.Cat, userId int64) (model.Cat, error)
+	ValidateCat(ctx context.Context, cat model.Cat) (err error)
 	GetCat(ctx context.Context, req model.GetCatRequest, userId int64) ([]model.Cat, error)
 	PostCat(ctx context.Context, catReq model.PostCatRequest, userId int64) (model.Cat, error)
 	PutCat(ctx context.Context, catReq model.PostCatRequest, catId int64) (sql.Result, error)

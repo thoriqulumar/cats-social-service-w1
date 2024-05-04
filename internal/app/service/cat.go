@@ -6,15 +6,84 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/converter"
 	cerror "github.com/thoriqulumar/cats-social-service-w1/internal/pkg/error"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/validator"
+
 	"go.uber.org/zap"
 )
+
+func (s *Service) RegisterCat(ctx context.Context, data model.Cat, userId int64) (model.Cat, error) {
+
+	data.OwnerId = userId
+	cat, err := s.repo.CreateCat(ctx, data)
+	fmt.Println(cat)
+	if err != nil {
+		s.logger.Error("failed to create user", zap.Error(err))
+		return model.Cat{}, err
+	}
+	cat.CreatedAt = time.Now().UTC().Format(time.RFC3339)
+	return cat, nil
+
+}
+func (s *Service) ValidateCat(ctx context.Context, cat model.Cat) (err error) {
+
+	// Validate name
+	if len(cat.Name) < 1 || len(cat.Name) > 30 {
+		return errors.New("name must be between 1 and 30 characters long")
+	}
+
+	// Validate race
+	validRaces := []string{"Persian", "Maine Coon", "Siamese", "Ragdoll", "Bengal", "Sphynx", "British Shorthair", "Abyssinian", "Scottish Fold", "Birman"}
+	isValidRace := false
+	for _, race := range validRaces {
+		if cat.Race == race {
+			isValidRace = true
+			break
+		}
+	}
+	if !isValidRace {
+		return errors.New("race is invalid or not specified")
+	}
+
+	// Validate sex
+	if cat.Sex != "male" && cat.Sex != "female" {
+		return errors.New("sex must be either 'male' or 'female'")
+	}
+
+	// Validate ageInMonth
+	if cat.AgeInMonth < 1 || cat.AgeInMonth > 120082 {
+		return fmt.Errorf("ageInMonth must be between 1 and 120082, got %d", cat.AgeInMonth)
+	}
+
+	// Validate description
+	if len(cat.Description) < 1 || len(cat.Description) > 200 {
+		return errors.New("description must be between 1 and 200 characters long")
+	}
+
+	// Validate imageUrls
+	if len(cat.ImagesUrls) == 0 {
+		return errors.New("at least one imageUrl is required")
+	}
+	for _, urlStr := range cat.ImagesUrls {
+		if urlStr == "" {
+			return errors.New("imageUrls cannot contain empty strings")
+		}
+		if _, err := url.ParseRequestURI(urlStr); err != nil {
+			return errors.New("each imageUrl must be a valid URL")
+		}
+	}
+
+	//TODO add more validation from requirement docs
+
+	return nil
+}
 
 func parseAgeInMonthFilter(ageFilter string) (string, string, error) {
 	var operator, value string
@@ -69,13 +138,14 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId
 		query += " AND ageInMonth " + operator + " ?"
 		args = append(args, value)
 	}
-	fmt.Println("catReq", catReq)
-
-	if catReq.Owned {
-		query += " AND ownerId = ?" // Get cats with ownerId equal to request's ownerId
+	if catReq.Owned != nil {
+		if *catReq.Owned {
+			query += " AND ownerId = ?" // Get cats with ownerId equal to request's ownerId
+		} else {
+			query += " AND ownerId != ?" // Get cats with ownerId not equal to request's ownerId
+		}
 		args = append(args, userId)
 	}
-
 	if catReq.Search != nil {
 		query += " AND name LIKE ?"
 		args = append(args, "%"+*catReq.Search+"%")
@@ -88,8 +158,6 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId
 	if catReq.Offset != nil {
 		offset = *catReq.Offset
 	}
-	fmt.Println("limit", limit)
-	fmt.Println("offset", offset)
 	args = append(args, limit, offset)
 	data, err := s.repo.GetCat(ctx, query, args)
 	if err != nil {
@@ -220,11 +288,11 @@ func (s *Service) DeleteCat(ctx context.Context, id int64) (err error) {
 	return nil
 }
 
-func (s *Service) ValidateDeleteCat(ctx context.Context, id, issuedId int64) (err error){
+func (s *Service) ValidateDeleteCat(ctx context.Context, id, issuedId int64) (err error) {
 	_, err = s.repo.GetCatOwnerByID(ctx, id, issuedId)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return cerror.New(http.StatusBadRequest, "catId not found or user is not the owner of cat")
 	}
-	
+
 	return nil
 }

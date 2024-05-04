@@ -19,6 +19,7 @@ type repository interface {
 	GetUserById(ctx context.Context, id int64) (data model.UserResponse, err error)
 	CreateUser(ctx context.Context, data model.User) (user model.User, err error)
 
+	CreateCat(ctx context.Context, data model.Cat) (cat model.Cat, err error)
 	GetCat(ctx context.Context, query string, args []interface{}) ([]model.Cat, error)
 	GetCatByID(ctx context.Context, id int64) (data model.Cat, err error)
 	GetCatOwnerByID(ctx context.Context, catId, ownerId int64) (data model.Cat, err error)

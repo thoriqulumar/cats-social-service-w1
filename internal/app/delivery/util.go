@@ -67,7 +67,7 @@ func parseCatRequestFromQuery(rawQuery string) model.GetCatRequest {
 			request.AgeInMonth = &value
 		case "owned":
 			owned, _ := strconv.ParseBool(value)
-			request.Owned = owned
+			request.Owned = &owned
 		case "search":
 			request.Search = &value
 		}
