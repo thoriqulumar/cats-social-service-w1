@@ -85,9 +85,6 @@ func (h *Handler) DeleteCat(c *gin.Context){
 
 	ownerId := getRequestedUserIDFromRequest(c)
 
-	fmt.Println(id)
-	fmt.Println(ownerId)
-
 	err := h.service.ValidateDeleteCat(ctx, int64(id), int64(ownerId))
 	if err != nil {
 		c.JSON(cerror.GetCode(err), gin.H{
