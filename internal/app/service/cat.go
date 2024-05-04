@@ -2,13 +2,20 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
+	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/converter"
+	cerror "github.com/thoriqulumar/cats-social-service-w1/internal/pkg/error"
+	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/validator"
+
 	"go.uber.org/zap"
 )
 
@@ -61,10 +68,10 @@ func (s *Service) ValidateCat(ctx context.Context, cat model.Cat) (err error) {
 	}
 
 	// Validate imageUrls
-	if len(cat.ImagesUrl) == 0 {
+	if len(cat.ImagesUrls) == 0 {
 		return errors.New("at least one imageUrl is required")
 	}
-	for _, urlStr := range cat.ImagesUrl {
+	for _, urlStr := range cat.ImagesUrls {
 		if urlStr == "" {
 			return errors.New("imageUrls cannot contain empty strings")
 		}
@@ -158,4 +165,134 @@ func (s *Service) GetCat(ctx context.Context, catReq model.GetCatRequest, userId
 	}
 
 	return data, nil
+}
+
+func (s *Service) PostCat(ctx context.Context, catReq model.PostCatRequest, userId int64) (model.Cat, error) {
+	var args []interface{}
+
+	args = append(args, userId)
+	inputVal := reflect.ValueOf(catReq)
+	for i := 0; i < inputVal.NumField()-1; i++ {
+		args = append(args, inputVal.Field(i).Interface())
+	}
+	args = append(args, converter.ConvertStrArrToPgArr(catReq.ImageUrls))
+
+	data, err := s.repo.PostCat(ctx, args)
+	if err != nil {
+		return model.Cat{}, err
+	}
+
+	return data, nil
+}
+
+func (s *Service) PutCat(ctx context.Context, catReq model.PostCatRequest, catId int64) (sql.Result, error) {
+	var args []interface{}
+
+	inputVal := reflect.ValueOf(catReq)
+	for i := 0; i < inputVal.NumField()-1; i++ {
+		args = append(args, inputVal.Field(i).Interface())
+	}
+	args = append(args, converter.ConvertStrArrToPgArr(catReq.ImageUrls))
+
+	data, err := s.repo.PutCat(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func (s *Service) ValidatePostCat(ctx context.Context, catReq model.PostCatRequest, issuerId int64) error {
+	if !validator.IsString(catReq.Name) {
+		return cerror.New(http.StatusBadRequest, "name doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Race) {
+		return cerror.New(http.StatusBadRequest, "race doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Sex) {
+		return cerror.New(http.StatusBadRequest, "sex doesn’t pass validation")
+	}
+
+	if !validator.IsNumber(catReq.AgeInMonth) {
+		return cerror.New(http.StatusBadRequest, "age doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Description) {
+		return cerror.New(http.StatusBadRequest, "description doesn’t pass validation")
+	}
+
+	if !validator.IsValidImageUrls(catReq.ImageUrls) {
+		return cerror.New(http.StatusBadRequest, "imageUrls doesn’t pass validation")
+	}
+
+	return nil
+}
+
+func (s *Service) ValidatePutCat(ctx context.Context, catReq model.PostCatRequest, catId int64, issuerId int64) error {
+	catData, err := s.repo.GetCatByID(ctx, catId)
+
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return cerror.New(http.StatusNotFound, "catId is not found")
+	}
+
+	if catData.HasMatched {
+		return cerror.New(http.StatusBadRequest, "sex is edited when cat is already requested to match")
+	}
+
+	_, err = s.repo.GetCatOwnerByID(ctx, catId, issuerId)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return cerror.New(http.StatusNotFound, "issuedId is not the owner of this cat")
+		}
+		// Handle case where no cat was found (data is zero-value Cat)
+		return cerror.New(http.StatusNotFound, "issuedId is not the owner of this cat")
+	}
+
+	if !validator.IsString(catReq.Name) {
+		return cerror.New(http.StatusBadRequest, "name doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Race) {
+		return cerror.New(http.StatusBadRequest, "race doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Sex) {
+		return cerror.New(http.StatusBadRequest, "sex doesn’t pass validation")
+	}
+
+	if !validator.IsNumber(catReq.AgeInMonth) {
+		return cerror.New(http.StatusBadRequest, "age doesn’t pass validation")
+	}
+
+	if !validator.IsString(catReq.Description) {
+		return cerror.New(http.StatusBadRequest, "description doesn’t pass validation")
+	}
+
+	if !validator.IsValidImageUrls(catReq.ImageUrls) {
+		return cerror.New(http.StatusBadRequest, "imageUrls doesn’t pass validation")
+	}
+
+	return nil
+}
+
+func (s *Service) DeleteCat(ctx context.Context, id int64) (err error) {
+	err = s.repo.DeleteCatById(ctx, id)
+	fmt.Println(err)
+	if err != nil {
+		s.logger.Error("failed to delete cat", zap.Error(err))
+		return
+	}
+
+	return nil
+}
+
+func (s *Service) ValidateDeleteCat(ctx context.Context, id, issuedId int64) (err error) {
+	_, err = s.repo.GetCatOwnerByID(ctx, id, issuedId)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return cerror.New(http.StatusBadRequest, "catId not found or user is not the owner of cat")
+	}
+
+	return nil
 }

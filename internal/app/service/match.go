@@ -66,7 +66,7 @@ func (s *Service) ValidateMatchCat(ctx context.Context, match model.MatchRequest
 	return nil
 }
 
-func (s *Service) DeleteMatch(ctx context.Context, id, issuedId int64) (err error) {
+func (s *Service) DeleteMatch(ctx context.Context, id int64) (err error) {
 	err = s.repo.DeleteMatchById(ctx, id)
 	if err != nil {
 		s.logger.Error("failed to delete match", zap.Error(err))
@@ -80,7 +80,7 @@ func (s *Service) ValidateDeleteMatchId(ctx context.Context, id, issuedId int64)
 	// check issuedId and id match
 	_, err = s.repo.GetMatchByIdAndIssuedId(ctx, id, issuedId)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
-		return errors.New("matchId is not found")
+		return errors.New("matchId not found or user is not the owner of match")
 	}
 
 	return nil
@@ -162,13 +162,13 @@ func (s *Service) RejectMatch(ctx context.Context, id int64) (matchID string, er
 	return
 }
 
-func (s *Service) GetMatchData(ctx context.Context, id int64) (listMatch []model.MatchData, err error){
+func (s *Service) GetMatchData(ctx context.Context, id int64) (listMatch []model.MatchData, err error) {
 	var listData []model.MatchData
 
 	rows, err := s.repo.GetAllMatchData(ctx, id)
 
 	if err != nil {
-		return nil,  cerror.New(http.StatusInternalServerError, "failed getting match data")
+		return nil, cerror.New(http.StatusInternalServerError, "failed getting match data")
 	}
 
 	defer rows.Close()
@@ -182,20 +182,20 @@ func (s *Service) GetMatchData(ctx context.Context, id int64) (listMatch []model
 		if err != nil {
 			return
 		}
-		
+
 		issuedBy, _ = s.repo.GetUserById(ctx, match.IssuedID)
 		matchCat, _ = s.repo.GetCatByID(ctx, match.MatchCatId)
 		userCat, _ = s.repo.GetCatByID(ctx, match.UserCatId)
 
 		matchData = model.MatchData{
-			ID: int(match.ID),
-			IssuedBy: issuedBy,
+			ID:             int(match.ID),
+			IssuedBy:       issuedBy,
 			MatchCatDetail: matchCat,
-			UserCatDetail: userCat,
-			Message: match.Message,
-			CreatedAt: match.CreatedAt,
+			UserCatDetail:  userCat,
+			Message:        match.Message,
+			CreatedAt:      match.CreatedAt,
 		}
-		
+
 		listData = append(listData, matchData)
 	}
 

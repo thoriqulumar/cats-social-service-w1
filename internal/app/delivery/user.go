@@ -2,10 +2,11 @@ package delivery
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 	cerror "github.com/thoriqulumar/cats-social-service-w1/internal/pkg/error"
-	"net/http"
 )
 
 func (h *Handler) Register(c *gin.Context) {
@@ -34,7 +35,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, model.RegisterResponse{
+	c.JSON(http.StatusCreated, model.RegisterResponse{
 		Message: "User logged successfully",
 		Data:    data,
 	})
