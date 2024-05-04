@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"github.com/lib/pq"
+	"strconv"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
@@ -91,6 +92,7 @@ func (r *Repo) GetMatchByUserCatIds(ctx context.Context, userCatIds []int64) (li
 		if err != nil {
 			return
 		}
+		match.IDStr = strconv.FormatInt(match.ID, 10)
 		listData = append(listData, match)
 	}
 
@@ -113,6 +115,7 @@ func (r *Repo) GetMatchByMatchCatIds(ctx context.Context, matchCatIDs []int64) (
 		if err != nil {
 			return
 		}
+		match.IDStr = strconv.FormatInt(match.ID, 10)
 		listData = append(listData, match)
 	}
 

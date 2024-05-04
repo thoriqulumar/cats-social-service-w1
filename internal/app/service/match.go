@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
 	cerror "github.com/thoriqulumar/cats-social-service-w1/internal/pkg/error"
@@ -13,7 +14,8 @@ import (
 
 func (s *Service) MatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (data model.Match, err error) {
 	// get receiverID
-	matchCat, err := s.repo.GetCatByID(ctx, match.MatchCatId)
+	matchCatId, _ := strconv.ParseInt(match.MatchCatId, 10, 64)
+	matchCat, err := s.repo.GetCatByID(ctx, matchCatId)
 	if err != nil {
 		return
 	}
@@ -28,18 +30,20 @@ func (s *Service) MatchCat(ctx context.Context, match model.MatchRequest, issued
 
 func (s *Service) ValidateMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error) {
 	// validate gender userCatId and matchCatId are not same
-	userCatData, err := s.repo.GetCatByID(ctx, match.UserCatId)
+	matchUserCatId, _ := strconv.ParseInt(match.UserCatId, 10, 64)
+	userCatData, err := s.repo.GetCatByID(ctx, matchUserCatId)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return cerror.New(http.StatusNotFound, "userCatId is not found")
 	}
 
-	matchCatData, err := s.repo.GetCatByID(ctx, match.MatchCatId)
+	matchCatId, _ := strconv.ParseInt(match.MatchCatId, 10, 64)
+	matchCatData, err := s.repo.GetCatByID(ctx, matchCatId)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return cerror.New(http.StatusNotFound, "matchCatId is not found")
 	}
 
 	// check if userCatId is owned by userId
-	_, err = s.repo.GetCatOwnerByID(ctx, match.UserCatId, issuedId)
+	_, err = s.repo.GetCatOwnerByID(ctx, matchUserCatId, issuedId)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return cerror.New(http.StatusNotFound, "issuedId not owner of userCatId")
@@ -162,13 +166,13 @@ func (s *Service) RejectMatch(ctx context.Context, id int64) (matchID string, er
 	return
 }
 
-func (s *Service) GetMatchData(ctx context.Context, id int64) (listMatch []model.MatchData, err error){
+func (s *Service) GetMatchData(ctx context.Context, id int64) (listMatch []model.MatchData, err error) {
 	var listData []model.MatchData
 
 	rows, err := s.repo.GetAllMatchData(ctx, id)
 
 	if err != nil {
-		return nil,  cerror.New(http.StatusInternalServerError, "failed getting match data")
+		return nil, cerror.New(http.StatusInternalServerError, "failed getting match data")
 	}
 
 	defer rows.Close()
@@ -182,20 +186,20 @@ func (s *Service) GetMatchData(ctx context.Context, id int64) (listMatch []model
 		if err != nil {
 			return
 		}
-		
+
 		issuedBy, _ = s.repo.GetUserById(ctx, match.IssuedID)
 		matchCat, _ = s.repo.GetCatByID(ctx, match.MatchCatId)
 		userCat, _ = s.repo.GetCatByID(ctx, match.UserCatId)
 
 		matchData = model.MatchData{
-			ID: int(match.ID),
-			IssuedBy: issuedBy,
+			ID:             strconv.FormatInt(match.ID, 10),
+			IssuedBy:       issuedBy,
 			MatchCatDetail: matchCat,
-			UserCatDetail: userCat,
-			Message: match.Message,
-			CreatedAt: match.CreatedAt,
+			UserCatDetail:  userCat,
+			Message:        match.Message,
+			CreatedAt:      match.CreatedAt,
 		}
-		
+
 		listData = append(listData, matchData)
 	}
 

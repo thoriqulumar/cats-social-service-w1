@@ -5,7 +5,8 @@ type RegisterResponse struct {
 	Data    UserWithAccess `json:"data"`
 }
 type User struct {
-	ID        int64  `json:"id"`
+	IDStr     string `json:"id" db:"-"`
+	ID        int64  `json:"-" db:"id"`
 	Email     string `json:"email"`
 	Name      string `json:"name"`
 	Password  string `json:"password"`
@@ -24,8 +25,8 @@ type LoginRequest struct {
 }
 
 type UserResponse struct {
-	ID    int64  `json:"id"`
-	Email string `json:"email"`
-	Name  string `json:"name"`
+	ID        string `json:"id"`
+	Email     string `json:"email"`
+	Name      string `json:"name"`
 	CreatedAt string `json:"createdAt" db:"createdAt"`
 }

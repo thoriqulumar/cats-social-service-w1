@@ -3,19 +3,19 @@ package repository
 import (
 	"context"
 	"database/sql"
-
 	"github.com/thoriqulumar/cats-social-service-w1/internal/app/model"
+	"strconv"
 )
 
 var (
 	prefixGetCat = `SELECT * FROM cat WHERE 1=1 AND "isDeleted"=false`
-	suffixGetCat = `;`
+	suffixGetCat = ` ;`
 )
 
 func (r *Repo) GetCat(ctx context.Context, query string, args []interface{}) (cats []model.Cat, err error) {
 	concatenatedQuery := prefixGetCat + query + suffixGetCat
 
-	rows, err := r.db.QueryxContext(ctx, concatenatedQuery, args...)
+	rows, err := r.db.QueryxContext(ctx, replacePlaceholders(concatenatedQuery), args...)
 	if err != nil {
 		return []model.Cat{}, err
 	}
@@ -26,6 +26,7 @@ func (r *Repo) GetCat(ctx context.Context, query string, args []interface{}) (ca
 		if err != nil {
 			return []model.Cat{}, err
 		}
+		cat.IDStr = strconv.FormatInt(cat.ID, 10)
 		cats = append(cats, cat)
 	}
 
@@ -85,7 +86,6 @@ func (r *Repo) PutCat(ctx context.Context, args []interface{}) (sql.Result, erro
 var (
 	updateIsDeletedCat = `UPDATE cat SET "isDeleted"=true WHERE id=$1;`
 )
-
 
 func (r *Repo) DeleteCatById(ctx context.Context, id int64) (err error) {
 	_, err = r.db.ExecContext(ctx, updateIsDeletedCat, id)

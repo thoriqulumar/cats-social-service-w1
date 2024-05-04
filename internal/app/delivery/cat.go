@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -14,9 +13,13 @@ import (
 func (h *Handler) GetCat(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	rawQuery := c.Request.URL.RawQuery
-
-	catRequest := parseCatRequestFromQuery(rawQuery)
+	catRequest, err := parseCatRequestFromQuery(c.Request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
 
 	userId := getRequestedUserIDFromRequest(c)
 
@@ -118,7 +121,7 @@ func (h *Handler) PutCat(c *gin.Context) {
 	})
 }
 
-func (h *Handler) DeleteCat(c *gin.Context){
+func (h *Handler) DeleteCat(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	paramId := c.Param("id")
