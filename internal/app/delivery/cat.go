@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -73,5 +74,34 @@ func (h *Handler) PutCat(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.PutCatResponse{
 		Message: "successfully update cat",
+	})
+}
+
+func (h *Handler) DeleteCat(c *gin.Context){
+	ctx := c.Request.Context()
+
+	paramId := c.Param("id")
+	id, _ := strconv.Atoi(paramId)
+
+	ownerId := getRequestedUserIDFromRequest(c)
+
+	err := h.service.ValidateDeleteCat(ctx, int64(id), int64(ownerId))
+	if err != nil {
+		c.JSON(cerror.GetCode(err), gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
+
+	err = h.service.DeleteCat(ctx, int64(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, model.GetCatResponse{
+		Message: "Match deleted successfully",
 	})
 }

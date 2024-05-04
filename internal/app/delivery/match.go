@@ -52,8 +52,15 @@ func (h *Handler) DeleteMatch(c *gin.Context) {
 
 	issuedId := getRequestedUserIDFromRequest(c)
 
-	// create match
-	err := h.service.DeleteMatch(ctx, int64(id), int64(issuedId))
+	err := h.service.ValidateDeleteMatchId(ctx, int64(id), int64(issuedId))
+	if err != nil {
+		c.JSON(cerror.GetCode(err), gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
+
+	err = h.service.DeleteMatch(ctx, int64(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
