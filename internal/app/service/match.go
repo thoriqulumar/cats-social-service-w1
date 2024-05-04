@@ -43,14 +43,14 @@ func (s *Service) ValidateMatchCat(ctx context.Context, match model.MatchRequest
 	}
 
 	// check if userCatId is owned by userId
-	_, err = s.repo.GetCatOwnerByID(ctx, matchUserCatId, issuedId)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			return cerror.New(http.StatusNotFound, "issuedId not owner of userCatId")
-		}
-		// Handle case where no cat was found (data is zero-value Cat)
-		return cerror.New(http.StatusNotFound, "issuedId not owner of userCatId")
-	}
+	//_, err = s.repo.GetCatOwnerByID(ctx, matchUserCatId, issuedId)
+	//if err != nil {
+	//	if !errors.Is(err, sql.ErrNoRows) {
+	//		return cerror.New(http.StatusNotFound, "issuedId not owner of userCatId")
+	//	}
+	//	// Handle case where no cat was found (data is zero-value Cat)
+	//	return cerror.New(http.StatusNotFound, "issuedId not owner of userCatId")
+	//}
 
 	// check if cats are from same owner
 	if matchCatData.OwnerId == userCatData.OwnerId {
