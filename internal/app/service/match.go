@@ -66,7 +66,7 @@ func (s *Service) ValidateMatchCat(ctx context.Context, match model.MatchRequest
 	return nil
 }
 
-func (s *Service) DeleteMatch(ctx context.Context, id, issuedId int64) (err error) {
+func (s *Service) DeleteMatch(ctx context.Context, id int64) (err error) {
 	err = s.repo.DeleteMatchById(ctx, id)
 	if err != nil {
 		s.logger.Error("failed to delete match", zap.Error(err))
@@ -80,7 +80,7 @@ func (s *Service) ValidateDeleteMatchId(ctx context.Context, id, issuedId int64)
 	// check issuedId and id match
 	_, err = s.repo.GetMatchByIdAndIssuedId(ctx, id, issuedId)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
-		return errors.New("matchId is not found")
+		return errors.New("matchId not found or user is not the owner of match")
 	}
 
 	return nil

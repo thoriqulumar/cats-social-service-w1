@@ -16,10 +16,13 @@ type service interface {
 	PutCat(ctx context.Context, catReq model.PostCatRequest, catId int64) (sql.Result, error)
 	ValidatePostCat(ctx context.Context, catReq model.PostCatRequest, issuerId int64) error
 	ValidatePutCat(ctx context.Context, catReq model.PostCatRequest, catId int64, issuerId int64) error
+	DeleteCat(ctx context.Context, id int64) (err error)
+	ValidateDeleteCat(ctx context.Context, id, issuedId int64) (err error)
 
 	MatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (data model.Match, err error)
 	ValidateMatchCat(ctx context.Context, match model.MatchRequest, issuedId int64) (err error)
-	DeleteMatch(ctx context.Context, id, issuedId int64) (err error)
+	DeleteMatch(ctx context.Context, id int64) (err error)
+	ValidateDeleteMatchId(ctx context.Context, id, issuedId int64) (err error)
 	ApproveMatch(ctx context.Context, id int64, receiverID int64) (matchID string, err error)
 	RejectMatch(ctx context.Context, id int64) (matchID string, err error)
 	GetMatchData(ctx context.Context, id int64) (listMatch []model.MatchData, err error)

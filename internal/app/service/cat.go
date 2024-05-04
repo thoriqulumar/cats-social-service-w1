@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/converter"
 	cerror "github.com/thoriqulumar/cats-social-service-w1/internal/pkg/error"
 	"github.com/thoriqulumar/cats-social-service-w1/internal/pkg/validator"
+	"go.uber.org/zap"
 )
 
 func parseAgeInMonthFilter(ageFilter string) (string, string, error) {
@@ -185,5 +187,25 @@ func (s *Service) ValidatePutCat(ctx context.Context, catReq model.PostCatReques
 		return cerror.New(http.StatusBadRequest, "imageUrls doesn’t pass validation")
 	}
 
+	return nil
+}
+
+func (s *Service) DeleteCat(ctx context.Context, id int64) (err error) {
+	err = s.repo.DeleteCatById(ctx, id)
+	fmt.Println(err)
+	if err != nil {
+		s.logger.Error("failed to delete cat", zap.Error(err))
+		return
+	}
+
+	return nil
+}
+
+func (s *Service) ValidateDeleteCat(ctx context.Context, id, issuedId int64) (err error){
+	_, err = s.repo.GetCatOwnerByID(ctx, id, issuedId)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return cerror.New(http.StatusBadRequest, "catId not found or user is not the owner of cat")
+	}
+	
 	return nil
 }
