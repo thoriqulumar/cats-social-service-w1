@@ -43,6 +43,5 @@ func Load(ctx context.Context) (*Config, error) {
 // ConnectionURL returns the connection URL for the database
 func (c DBConfig) ConnectionURL() string {
 	params := strings.ReplaceAll(c.Params, `"`, "")
-	return fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s %s",
-		c.Username, c.Password, c.Name, c.Host, c.Port, params)
+	return fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?%s", c.Username, c.Password, c.Host, c.Port, c.Name, params)
 }
